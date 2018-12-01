@@ -1,0 +1,1717 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2018-12-01 Sat 11:21 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Property Analysis</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="richie" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<style type="text/css">.example {background-color: #eff0f1; color: #ff0000;}</style>
+<link rel="stylesheet" type="text/css" href="http://orgminimal.tizi.moe/bundle.min.css"/>
+<script src="http://orgminimal.tizi.moe/bundle.min.js" type="text/javascript" ></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2018 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Property Analysis</h1>
+
+<div id="outline-container-org1789309" class="outline-2">
+<h2 id="org1789309"><span class="section-number-2">1</span> Article</h2>
+</div>
+
+
+
+<div id="outline-container-org4613de7" class="outline-2">
+<h2 id="org4613de7"><span class="section-number-2">2</span> First Article</h2>
+<div class="outline-text-2" id="text-2">
+<blockquote>
+<p>
+It is a truth universally acknowledged that a married man in
+possession of a good fortune must be in want of a house.
+</p>
+</blockquote>
+
+<p>
+I've taken the liberty of updating good old Jane's statement for more
+contemporary times. This article talks about my process of looking at
+and understanding property prices in Ireland.
+</p>
+
+<p>
+Some background for my non-Irish readers:
+</p>
+<ul class="org-ul">
+<li>Ireland was mostly poor from the 1930's to the 1990's</li>
+<li>Banks were very hesitant to lend money to anyone</li>
+<li>And the interest rates were very high</li>
+</ul>
+
+<p>
+This all changed during the Celtic Tiger period, when a flood of cheap
+euro-denominated money was dropped in by German and french
+helicopters <sup><a id="fnr.1" class="footref" href="#fn.1">1</a></sup>. This lead (predictably) to a massive property
+bubble, which was sadly interrupted by the advent of financial
+contagion in 2007. Over the next few years, the economy fell apart, we
+were dragged into a bailout program, and house prices collapsed.
+</p>
+
+<p>
+A few years after that, they started to recover, and right now, we
+have a massive housing crisis in that people can't afford houses,
+which puts more stress on the rental market, increasing prices.
+</p>
+
+<p>
+Given that I don't trust the property-porn engaged in by the media and
+government, I decided to take matters into my own hands, and consult
+the property price register (PPR for future reference) and figure out
+whether or not I should buy or continue to slum it in a hell of
+short-term lets and fear <sup><a id="fnr.2" class="footref" href="#fn.2">2</a></sup>.
+</p>
+</div>
+
+<div id="outline-container-orgbb57dab" class="outline-3">
+<h3 id="orgbb57dab"><span class="section-number-3">2.1</span> Property Price Register</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+So, the property price register was established in the depths of the
+economic crisis <sup><a id="fnr.3" class="footref" href="#fn.3">3</a></sup>, and so has a number of problems. The most
+obvious is that we only have data from 2010. Given data from the boom,
+it would be a much easier task to estimate tops and bottoms, but we
+can only work with what we have. The second problem with the data is
+that Ireland doesn't have postcodes <sup><a id="fnr.4" class="footref" href="#fn.4">4</a></sup>, which makes localisation
+of the properties a challenge.
+</p>
+
+<p>
+Nonetheless, the nice people at the <a href="https://www.propertypriceregister.ie/website/npsra/pprweb.nsf/page/ppr-home-en">PPR</a> have collated the data for us,
+so there is that. They helpfully provide the data in CSV format, and
+have a document which contains all of the property data, which can be
+found <a href="https://propertypriceregister.ie/website/npsra/pprweb.nsf/PPRDownloads?OpenForm">here</a> <sup><a id="fnr.5" class="footref" href="#fn.5">5</a></sup>
+</p>
+
+
+<p>
+So, on with the show! <sup><a id="fnr.6" class="footref" href="#fn.6">6</a></sup>
+</p>
+</div>
+
+<div id="outline-container-org6c7fd00" class="outline-4">
+<h4 id="org6c7fd00"><span class="section-number-4">2.1.1</span> Data Cleaning</h4>
+<div class="outline-text-4" id="text-2-1-1">
+<p>
+In data analysis, much as in life, cleaning is important.
+Unfortunately, while keeping ones house and body cleaning rarely takes
+up all of one's time, data cleaning, can,  and often does take up almost all
+of the time. So, enjoying (or at least not hating) this process,
+is an important career skill.
+</p>
+
+<p>
+Anyways, so the first thing we do is look at the data
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R">dat <span style="color: #40e0d0;">&lt;-</span> read_excel(<span style="color: #bdb76b;">"PPR-ALL.xlsx"</span>, sheet=<span style="color: #bdb76b;">"PPR-ALL"</span>)
+names(dat)
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">Date of Sale (dd/mm/yyyy)</td>
+</tr>
+
+<tr>
+<td class="org-left">Address</td>
+</tr>
+
+<tr>
+<td class="org-left">Postal Code</td>
+</tr>
+
+<tr>
+<td class="org-left">County</td>
+</tr>
+
+<tr>
+<td class="org-left">Price (�)</td>
+</tr>
+
+<tr>
+<td class="org-left">Not Full Market Price</td>
+</tr>
+
+<tr>
+<td class="org-left">VAT Exclusive</td>
+</tr>
+
+<tr>
+<td class="org-left">Description of Property</td>
+</tr>
+
+<tr>
+<td class="org-left">Property Size Description</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+OK, so we have date (nicely, they have specified the format),
+address, postal code, county.
+</p>
+
+<p>
+Note that price has a weirdass character
+in there. This is probably because I don't really understand how
+encodings work <sup><a id="fnr.7" class="footref" href="#fn.7">7</a></sup>.
+</p>
+
+<p>
+I have some problems with these names. The spaces will cause problems,
+and capitalisation is so passe. I'll fix these problems with some
+code.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #98fb98;">normalise_names</span> <span style="color: #40e0d0;">&lt;-</span> <span style="color: #ffffff;">function</span>(df) {
+    nms <span style="color: #40e0d0;">&lt;-</span> names(df)
+    normed <span style="color: #40e0d0;">&lt;-</span> iconv(
+        tolower(
+            gsub(<span style="color: #bdb76b;">"([[:space:]]|[[:punct:]])+"</span>, <span style="color: #bdb76b;">"_"</span>,
+                 x=nms)),
+        <span style="color: #bdb76b;">"latin1"</span>, <span style="color: #bdb76b;">"ASCII"</span>, sub=<span style="color: #bdb76b;">""</span>)
+    drop_usc <span style="color: #40e0d0;">&lt;-</span> gsub(<span style="color: #bdb76b;">"([a-z_])_*$"</span>, <span style="color: #bdb76b;">"\\1"</span>,
+                     x=normed)
+    names(df) <span style="color: #40e0d0;">&lt;-</span> drop_usc
+    df
+}
+</pre>
+</div>
+
+
+<p>
+This function does a few things:
+</p>
+<ol class="org-ol">
+<li>it replaces spaces or punctuation with underscores<sup><a id="fnr.8" class="footref" href="#fn.8">8</a></sup></li>
+<li>it then converts all text to lowercase</li>
+<li>Then we exert cultural imperialism and export to ascii<sup><a id="fnr.10" class="footref" href="#fn.10">10</a></sup></li>
+<li>finally, we replace multiple underscores with one (for tidyness, mostly)</li>
+</ol>
+
+<div class="org-src-container">
+<pre class="src src-R">dat2 <span style="color: #40e0d0;">&lt;-</span> normalise_names(dat)
+names(dat2)
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">date_of_sale_dd_mm_yyyy</td>
+</tr>
+
+<tr>
+<td class="org-left">address</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_code</td>
+</tr>
+
+<tr>
+<td class="org-left">county</td>
+</tr>
+
+<tr>
+<td class="org-left">price</td>
+</tr>
+
+<tr>
+<td class="org-left">not_full_market_price</td>
+</tr>
+
+<tr>
+<td class="org-left">vat_exclusive</td>
+</tr>
+
+<tr>
+<td class="org-left">description_of_property</td>
+</tr>
+
+<tr>
+<td class="org-left">property_size_description</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+Much better. Little things like this add up to a better, more
+productive life.
+</p>
+
+<p>
+Next, we need to remove the Euro symbols from the input doc (which
+have become hopelessly mangled). Again, we abuse iconv, this time on
+a particular column. My life would be much easier if I took the time
+to learn how to handle encodings <sup><a id="fnr.11" class="footref" href="#fn.11">11</a></sup>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #98fb98;">fix_price</span> <span style="color: #40e0d0;">&lt;-</span> <span style="color: #ffffff;">function</span>(x) {
+    nopunct <span style="color: #40e0d0;">&lt;-</span> gsub(<span style="color: #bdb76b;">",|\\."</span>, <span style="color: #bdb76b;">""</span>, x=x)
+    nums <span style="color: #40e0d0;">&lt;-</span> iconv(nopunct, <span style="color: #bdb76b;">"latin1"</span>, <span style="color: #bdb76b;">"ASCII"</span>, sub=<span style="color: #bdb76b;">""</span>)
+}
+dat2$price <span style="color: #40e0d0;">&lt;-</span> with(dat2, fix_price(price))
+</pre>
+</div>
+
+
+<ul class="org-ul">
+<li>For some bizzare reason, price is in cent. We handle that here to avoid wasting time.</li>
+<li>These preliminaries accomplished, we can move towards actually looking at the data</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-R">
+prop_df <span style="color: #40e0d0;">&lt;-</span> dat2 <span style="color: #40e0d0;">%&gt;%</span>
+    mutate(date_of_sale=lubridate::dmy(date_of_sale_dd_mm_yyyy),
+           not_full_market_price=as.factor(not_full_market_price),
+           postal_code=as.factor(fct_explicit_na(postal_code)),
+           vat_exclusive=as.factor(vat_exclusive),
+           county=as.factor(county),
+           price=as.numeric(price)/100)
+prop_df2 <span style="color: #40e0d0;">&lt;-</span> mutate(prop_df,
+                   year=lubridate::year(date_of_sale),
+                   month=lubridate::month(date_of_sale),
+                   day=lubridate::day(date_of_sale))
+
+prop_sample <span style="color: #40e0d0;">&lt;-</span> sample_frac(prop_df2, size=0.1)
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>We also take a ten percent sample, just to speed up the analysis <sup><a id="fnr.12" class="footref" href="#fn.12">12</a></sup></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org52b732c" class="outline-4">
+<h4 id="org52b732c"><span class="section-number-4">2.1.2</span> Wasting Time with Plots</h4>
+<div class="outline-text-4" id="text-2-1-2">
+
+<div class="figure">
+<p><img src="pricedens.png" alt="pricedens.png" />
+</p>
+</div>
+
+<ul class="org-ul">
+<li>So, when we do the simplest plot ever (a one-way summary of price),
+it looks pretty weird.</li>
+<li>Most of the density is in the one line near zero, and there's a
+long tail that goes up to 100mn</li>
+<li>who are these people buying houses for many millions of euros?</li>
+<li>most importantly, how can I become one of them?</li>
+</ul>
+
+<p>
+The first thing to do when you find something weird like this is to
+take a look at the observations and see if they are different <sup><a id="fnr.13" class="footref" href="#fn.13">13</a></sup>.
+Let's sort the data by price and look at the addresses.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R">arrange(prop_df, desc(price)) <span style="color: #40e0d0;">%&gt;%</span>
+    select(address, county, date_of_sale, price) <span style="color: #40e0d0;">%&gt;%</span>
+    head()
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">address</th>
+<th scope="col" class="org-left">county</th>
+<th scope="col" class="org-right">date_of_sale</th>
+<th scope="col" class="org-right">price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">2 CANNON HOUSE, CLANCY QUAY, DUBLIN 8</td>
+<td class="org-left">Dublin</td>
+<td class="org-right">2018-06-22</td>
+<td class="org-right">139165000</td>
+</tr>
+
+<tr>
+<td class="org-left">APT 204 THE ALLIANCE, THE GASWORKS, BARROW ST</td>
+<td class="org-left">Dublin</td>
+<td class="org-right">2018-06-22</td>
+<td class="org-right">87928183</td>
+</tr>
+
+<tr>
+<td class="org-left">Block F  K and L Central Park, Leopardstown</td>
+<td class="org-left">Dublin</td>
+<td class="org-right">2014-07-24</td>
+<td class="org-right">86365000</td>
+</tr>
+
+<tr>
+<td class="org-left">Blocks F  K and L Central Park, Leopardstown</td>
+<td class="org-left">Dublin</td>
+<td class="org-right">2014-03-28</td>
+<td class="org-right">70503358</td>
+</tr>
+
+<tr>
+<td class="org-left">182 THE ELYSIAN, EGLINTON STREET, CORK</td>
+<td class="org-left">Cork</td>
+<td class="org-right">2018-07-27</td>
+<td class="org-right">69873482</td>
+</tr>
+
+<tr>
+<td class="org-left">Binary Hub  Roe's Lane, Bonham Street</td>
+<td class="org-left">Dublin</td>
+<td class="org-right">2016-12-19</td>
+<td class="org-right">69208163</td>
+</tr>
+</tbody>
+</table>
+
+<p>
+OK, so the Cannon house thing must be more than one apartment. Otherwise things have gone even
+madder than I thought. Also Apt 204 the Alliance, and 182 the Elysian <sup><a id="fnr.14" class="footref" href="#fn.14">14</a></sup>. Entire 
+apartment blocks for 76-86 million makes more sense, however.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R">arrange(prop_df, desc(price)) <span style="color: #40e0d0;">%&gt;%</span>
+    select(address, county, date_of_sale, price) <span style="color: #40e0d0;">%&gt;%</span>
+    tail()
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">address</th>
+<th scope="col" class="org-left">county</th>
+<th scope="col" class="org-right">date_of_sale</th>
+<th scope="col" class="org-right">price</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">7 Greenfields, Lanesboro Road, Roscommon</td>
+<td class="org-left">Roscommon</td>
+<td class="org-right">2015-05-22</td>
+<td class="org-right">5179</td>
+</tr>
+
+<tr>
+<td class="org-left">8 Greenfields, Lanesboro Road, Roscommon</td>
+<td class="org-left">Roscommon</td>
+<td class="org-right">2015-05-22</td>
+<td class="org-right">5179</td>
+</tr>
+
+<tr>
+<td class="org-left">9 Greenfields, Lanesboro Road, Roscommon</td>
+<td class="org-left">Roscommon</td>
+<td class="org-right">2015-05-22</td>
+<td class="org-right">5179</td>
+</tr>
+
+<tr>
+<td class="org-left">LAVALLY, BALLINTOGHER</td>
+<td class="org-left">Sligo</td>
+<td class="org-right">2014-05-01</td>
+<td class="org-right">5177</td>
+</tr>
+
+<tr>
+<td class="org-left">Loghnabradden, Fintown, Co. Donegal</td>
+<td class="org-left">Donegal</td>
+<td class="org-right">2012-01-11</td>
+<td class="org-right">5079</td>
+</tr>
+
+<tr>
+<td class="org-left">CLOGHAN, GLENCOLMCILLE, DONEGAL</td>
+<td class="org-left">Donegal</td>
+<td class="org-right">2014-07-18</td>
+<td class="org-right">5079</td>
+</tr>
+</tbody>
+</table>
+
+
+<ul class="org-ul">
+<li>there must be something really wrong with these houses.</li>
+</ul>
+
+<p>
+It does tell us something about the tails<sup><a id="fnr.15" class="footref" href="#fn.15">15</a></sup> of the crash, in that
+property was worth so little in Roscommon in 2015 that this happened.
+It may also be an error, as I don't know what kind of checking goes into 
+this data. 
+</p>
+
+
+<div class="figure">
+<p><img src="countyearly.png" alt="countyearly.png" />
+</p>
+</div>
+<ul class="org-ul">
+<li>Note that 2018 hasn't finished yet, which distorts the trend.</li>
+</ul>
+
+<p>
+However, it's interesting to note that there weren't that many sales.
+Even at 55k it's only 5% of the housing stock <sup><a id="fnr.16" class="footref" href="#fn.16">16</a></sup>. That's not a huge amount,
+but given the lack of data for the boom, it's very difficult to make those judgements. 
+</p>
+
+
+<div class="figure">
+<p><img src="yearly.png" alt="yearly.png" />
+</p>
+</div>
+
+
+<div class="figure">
+<p><img src="yearly.png" alt="yearly.png" />
+</p>
+</div>
+
+<p>
+So the overall trend is pretty clear. The chart above shows median prices.
+For those of you who aren't stats nerds, the median is the middle value.
+If you laid out all the prices in a line, the median would be the middle of 
+the line. This means that it's a reasonable summary of the distribution. 
+</p>
+
+<p>
+Really, you should look at the distribution itself, but aggregations
+such as the median are useful for plots and telling people about. 
+</p>
+
+
+
+<div class="figure">
+<p><img src="meanyearly.png" alt="meanyearly.png" />
+</p>
+</div>
+<ul class="org-ul">
+<li>The mean, which is the sum divided by the length of the set of numbers is much higher.</li>
+</ul>
+<p>
+This is pretty normal in most sets of data because huge values at the top or bottom
+have more impact on the mean. Again, the same trend is pretty visible.
+</p>
+
+<p>
+Note that I've filtered out the properties sold for more than 2mn, as these are mostly apartment
+blocks and groups of houses. These probably shouldn't be looked at for this analysis <sup><a id="fnr.17" class="footref" href="#fn.17">17</a></sup>. 
+</p>
+
+<p>
+Looking closer at Dublin (and breaking down by postal code), we can see some more interesting patterns. 
+</p>
+
+
+<div class="figure">
+<p><img src="dubmonthly.png" alt="dubmonthly.png" />
+</p>
+</div>
+<ul class="org-ul">
+<li>Prices are definitely trending up, but there are some large outliers
+across the board.</li>
+</ul>
+
+<p>
+Like this former house owned by an executive in <a href="https://www.irishtimes.com/life-and-style/homes-and-property/new-to-market/where-the-gardens-sweep-down-to-the-liffey-1.2650733">Dublin 20, for
+example</a>. That place definitely doesn't reflect the average experience
+in that area. In general, I'm beginning to think that there are
+multiple housing markets in Ireland, not one. This makes sense as one
+can only compete against others in the same price range. This would
+suggest that I should regard the house buying denizens of South Dublin
+to be some kind of alien species. I do enjoy when a data-driven theory
+agrees with my priors.
+</p>
+
+
+
+<div class="figure">
+<p><img src="dubsalesdaily.png" alt="dubsalesdaily.png" />
+</p>
+</div>
+<ul class="org-ul">
+<li>Long periods of not much activity, followed by sudden spikes.</li>
+<li>We should probably dig into some of the spikes to figure out what
+they mean.</li>
+<li>It's possible that they may be one overall transaction recorded as
+multiples (for instance, when an entire apartment block is sold to
+one developer, and it's recorded unit by unit).</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<div id="outline-container-orgebf2591" class="outline-3">
+<h3 id="orgebf2591"><span class="section-number-3">2.2</span> Mortgage Data</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Most people who buy houses need mortgages, unfortunately. Fortuntately
+for me, we have a (reasonably good) source of information in this on
+the &lt;INSERT_ORG_HERE&gt; website.
+</p>
+
+<p>
+The data goes back to 2011 (so not quite as much as our house price
+data), and is collected at a monthly cadence. It appears to be most of
+the high-street banks in ireland, and is only for mortgages on residential
+properties.
+</p>
+
+<p>
+It comes in an Excel sheet. Whoever released this seemed to value the
+aesthetic principles of the dataset in preference to usability in
+computer programs. Given that the primary audience seems to be
+journalists, this probably makes sense.
+</p>
+
+<p>
+I did some artisanal data cleaning <sup><a id="fnr.18" class="footref" href="#fn.18">18</a></sup> on the file, and imported
+all the data as per below.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #40e0d0;">require</span>(readxl)
+mortgage_sheets <span style="color: #40e0d0;">&lt;-</span> excel_sheets(<span style="color: #bdb76b;">"Website-mortgage-approvals-time-series-Sep2018.xls"</span>)
+volumes <span style="color: #40e0d0;">&lt;-</span> read_excel(<span style="color: #bdb76b;">"Website-mortgage-approvals-time-series-Sep2018.xls"</span>,
+                      sheet=<span style="color: #bdb76b;">"Volumes"</span>, skip=4)
+names(volumes)[c(1:2, 8)] <span style="color: #40e0d0;">&lt;-</span> c(<span style="color: #bdb76b;">"year"</span>, <span style="color: #bdb76b;">"month"</span>, <span style="color: #bdb76b;">"total"</span>)
+volumes2 <span style="color: #40e0d0;">&lt;-</span> normalise_names(volumes)
+
+values <span style="color: #40e0d0;">&lt;-</span> read_excel(<span style="color: #bdb76b;">"Website-mortgage-approvals-time-series-Sep2018.xls"</span>,
+                     sheet=<span style="color: #bdb76b;">"Values"</span>, skip=4)
+names(values)[c(1:2, 8)] <span style="color: #40e0d0;">&lt;-</span> c(<span style="color: #bdb76b;">"year"</span>, <span style="color: #bdb76b;">"month"</span>, <span style="color: #bdb76b;">"total"</span>)
+values2 <span style="color: #40e0d0;">&lt;-</span> normalise_names(values)
+
+av_values <span style="color: #40e0d0;">&lt;-</span> read_excel(<span style="color: #bdb76b;">"Website-mortgage-approvals-time-series-Sep2018.xls"</span>,
+                        sheet=<span style="color: #bdb76b;">"Average Value"</span>, skip=4)
+names(av_values)[c(1:2, 8)] <span style="color: #40e0d0;">&lt;-</span> c(<span style="color: #bdb76b;">"year"</span>, <span style="color: #bdb76b;">"month"</span>, <span style="color: #bdb76b;">"total"</span>)
+av_values2 <span style="color: #40e0d0;">&lt;-</span> normalise_names(av_values)
+valtidy <span style="color: #40e0d0;">&lt;-</span> gather(values2, key=<span style="color: #bdb76b;">"type"</span>, value=<span style="color: #bdb76b;">"value"</span>, 3:7) <span style="color: #40e0d0;">%&gt;%</span>
+    mutate(date=lubridate::ymd(paste(
+                               year, month, <span style="color: #bdb76b;">"01"</span>,
+                               sep=<span style="color: #bdb76b;">"-_"</span>)))
+voltidy <span style="color: #40e0d0;">&lt;-</span> gather(volumes, key=<span style="color: #bdb76b;">"type"</span>, value=<span style="color: #bdb76b;">"volume"</span>, 3:7) <span style="color: #40e0d0;">%&gt;%</span>
+    mutate(date=lubridate::ymd(paste(
+                               year, month, <span style="color: #bdb76b;">"01"</span>,
+                               sep=<span style="color: #bdb76b;">"-_"</span>)))
+av_valtidy <span style="color: #40e0d0;">&lt;-</span> gather(av_values2, key=<span style="color: #bdb76b;">"type"</span>, value=<span style="color: #bdb76b;">"av_value"</span>, 3:7) <span style="color: #40e0d0;">%&gt;%</span>
+    mutate(date=lubridate::ymd(paste(
+                               year, month, <span style="color: #bdb76b;">"01"</span>,
+                               sep=<span style="color: #bdb76b;">"-_"</span>)))
+</pre>
+</div>
+
+
+<p>
+Note the repeated code. Sometimes, a little copying is better than a
+large dependency. Sometimes people are lazy. Who can ever tell, in
+this workaday world?
+</p>
+
+<p>
+The volumes tab is count, the values tab is in millions (1e6), and the
+average values tab is (presumably) the first divided by the second.
+There's also a notes tab, which we don't import <sup><a id="fnr.19" class="footref" href="#fn.19">19</a></sup>
+</p>
+
+<p>
+So, below we can see the volumes of mortgage approvals since 2011. 
+</p>
+
+<p>
+<img src="mortgagecount.png" alt="mortgagecount.png" /> <img src="mortgagecount.png" alt="mortgagecount.png" /> The most striking thing
+about this graph is the complete absence of first-time buyers between
+2011 and 2014. I am tempted to declare it a data mistake, but given
+the economic conditions it is a little plausible. They may also
+suppress small numbers in the interests of privacy. It would be good
+if I figured this out, but I'll leave it for now.
+</p>
+
+<p>
+When they do come back, they come back all at once, with near level
+FTB and traders-up. If this pattern held for the entirity of the boom,
+no wonder that things have gotten so messed up since.
+</p>
+
+<p>
+Next, we look at the total value of mortgages issued to particular
+kinds of buyers over the time period.
+</p>
+
+
+<div class="figure">
+<p><img src="mortgagevals.png" alt="mortgagevals.png" />
+</p>
+</div>
+
+
+<ul class="org-ul">
+<li>So we have been 1-2bn per year for each of the FTB and Mover Purchase categories.</li>
+</ul>
+
+<p>
+We can see what the average looks like in the plot below. 
+</p>
+
+
+
+<div class="figure">
+<p><img src="mortgage_av_vals.png" alt="mortgage_av_vals.png" />
+</p>
+</div>
+
+
+<p>
+This chart is actually more interesting than either of the previous
+two. We can see that the average value given to FTB is significantly
+less than that for Mover Purchase. In some sense, this is weird as one
+would expect the movers to need less of a mortgage, given the existence 
+of their previous property.
+</p>
+
+<p>
+Another point that is obvious from the plot is the re-appearence of
+remortgaging in terms of value in 2014. Perhaps not coincidentally,
+the state emerged from the bailout program in December <a href="https://www.irishtimes.com/business/economy/jean-claude-trichet-and-the-irish-bailout-a-timeline-1.1990882">2013 (paywall,
+but they have a few free articles)</a>. 
+</p>
+
+<p>
+Did the recovery in property prices encourage people to re-mortgage?
+Did the banks encourage these (presumably wealthy) borrowers?
+it's difficult to estbalish this from the data.
+</p>
+
+<p>
+Additionally, given that I want to buy a house in Dublin, I'm not sure
+how useful the overall figures are. Unfortunately, this is all we have,
+which means we probably need more data (don't worry, we'll come back
+to the mortgage data eventually <sup><a id="fnr.20" class="footref" href="#fn.20">20</a></sup>).
+</p>
+
+<p>
+Next stop, the CSO!
+</p>
+</div>
+</div>
+
+<div id="outline-container-org5571860" class="outline-3">
+<h3 id="org5571860"><span class="section-number-3">2.3</span> Residential Prices by Month, Type of Property (HPM06)</h3>
+<div class="outline-text-3" id="text-2-3">
+<p>
+The CSO have this arcane windows only application that people 
+are supposed to use to get data. Being on Linux, I was SOL until
+some kind soul wrote code to access their database through an API.
+</p>
+
+<p>
+They use a weird-ass format called JSON-Stat, which I know little
+about, but fortunately I can just call a function and get the data
+back as a dataframe.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #40e0d0;">source</span>(<span style="color: #bdb76b;">"rcso/read_api.R"</span>)
+prices <span style="color: #40e0d0;">&lt;-</span> getJSONstat(<span style="color: #bdb76b;">"HPM06"</span>)
+
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-R">head(prices)
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">type_of_residential_property</th>
+<th scope="col" class="org-right">month</th>
+<th scope="col" class="org-left">statistic</th>
+<th scope="col" class="org-left">value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-01-01</td>
+<td class="org-left">Residential Property Price Index (Base Jan 2005 = 100)</td>
+<td class="org-left">100</td>
+</tr>
+
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-01-01</td>
+<td class="org-left">Percentage Change over 1 month for Residential Property Price Index (%)</td>
+<td class="org-left">nil</td>
+</tr>
+
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-01-01</td>
+<td class="org-left">Percentage Change over 3 months for Residential Property Price Index (%)</td>
+<td class="org-left">nil</td>
+</tr>
+
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-01-01</td>
+<td class="org-left">Percentage Change over 12 months for Residential Property Price Index (%)</td>
+<td class="org-left">nil</td>
+</tr>
+
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-02-01</td>
+<td class="org-left">Residential Property Price Index (Base Jan 2005 = 100)</td>
+<td class="org-left">100.8</td>
+</tr>
+
+<tr>
+<td class="org-left">National - all residential properties</td>
+<td class="org-right">2005-02-01</td>
+<td class="org-left">Percentage Change over 1 month for Residential Property Price Index (%)</td>
+<td class="org-left">0.8</td>
+</tr>
+</tbody>
+</table>
+
+<ul class="org-ul">
+<li>So the type variable tells us what we are measuring, the statistic defines what the value means.</li>
+<li>This is awkward data to work with, but tidying it up should help.</li>
+</ul>
+<p>
+We'll keep type in the rows, but move all the statistics into their own columns, to facilitate plotting.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R">prices2 <span style="color: #40e0d0;">&lt;-</span> spread(prices, key=<span style="color: #bdb76b;">"statistic"</span>, value=<span style="color: #bdb76b;">"value"</span>)
+prices3 <span style="color: #40e0d0;">&lt;-</span> normalise_names(prices2)
+</pre>
+</div>
+
+<p>
+The names are still really long, but at least they don't have spaces anymore. 
+</p>
+
+<p>
+The variable we care about here is the index. This is normalised to 2005,
+at 100, so we can interpret the graph as the change since then. 
+</p>
+
+
+<div class="figure">
+<p><img src="prices200518.png" alt="prices200518.png" /> 
+</p>
+</div>
+
+<p>
+Wow, so overall we're in 2005 again. I remember
+telling people not to buy houses around then. 
+Mind you I was just bitter because no-one would give me 
+a mortgage <sup><a id="fnr.21" class="footref" href="#fn.21">21</a></sup>. 
+</p>
+
+<p>
+This kinda scares the hell out of me, but I suspect that
+the numbers of houses being sold today are a fraction of those
+sold during the boom. 
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgb08ca46" class="outline-3">
+<h3 id="orgb08ca46"><span class="section-number-3">2.4</span> New Property Prices</h3>
+<div class="outline-text-3" id="text-2-4">
+
+<div class="figure">
+<p><img src="yearlyprices.png" alt="yearlyprices.png" />
+</p>
+</div>
+
+
+<p>
+Wow, this is mental. House prices have basically only gone down a lot once,
+and that was the boom. This may be why many Irish people regard property as 
+such a good asset. Additionally, we're now seeing ZIRP and QE inject large sums
+of money into the economy, which has pumped up asset prices <sup><a id="fnr.22" class="footref" href="#fn.22">22</a></sup>. 
+</p>
+
+<p>
+On the other hand, Dublin looked pretty mental in 2015 (when this datasource stops).
+Note that this is only for new properties, which is skewed by the scarcity.
+I probably need to get some counts to normalise.
+</p>
+
+<p>
+Additionally, I need to look at population flows over the time periods concerned.
+If I had counts for houses built and available, that would be super useful.
+Not sure if such a source exists, however. 
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgafae167" class="outline-3">
+<h3 id="orgafae167"><span class="section-number-3">2.5</span> Pulling it All Together</h3>
+<div class="outline-text-3" id="text-2-5">
+<ul class="org-ul">
+<li>So what have we learned from today's excursions?</li>
+</ul>
+
+<p>
+Firstly, we reviewed the change in property prices by county and date of sale
+from the PPR. This source is entirely comprehensive, but only covers sales,
+so we can't figure out demand from this, except by looking at price.
+Additionally, the address data is pretty raw, and it would take a whole 
+lot of time or cost a whole bunch of money <sup><a id="fnr.23" class="footref" href="#fn.23">23</a></sup> to make it more usable.
+</p>
+
+<p>
+If that could be done, the CSO have a lot of good area data which I barely
+scratch the surface of here. The most obvious next avenue of approach is
+through population statistics and change rates, and this would be expected
+to impact demand for housing. 
+</p>
+
+<p>
+You could then normalise the data by the population and get more useful 
+estimates. 
+</p>
+
+<p>
+However, another issue which we're ingoring is rents, as a lot of property 
+is not available to be sold. This is becoming increasingly common, especially
+in Dublin. I believe that a bunch of the really large transactions in the PPR
+are the result of such arrangements. We can get rents from various websites, 
+in compliance with all legal processes :) 
+</p>
+
+<p>
+Finally, we need to measure the delta between asking and sale prices. Again,
+this can be obtained through various web-scraping means and sources. This
+delta will then allow us to make somewhat (more) useful decisions with respect to 
+property <sup><a id="fnr.24" class="footref" href="#fn.24">24</a></sup>
+</p>
+
+<p>
+So, that's what I'm going to do, I guess. To be fair, this post is probably
+more like 2-3 articles, but I can't handle not being finished anymore, so 
+I'm calling it done. 
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org269d9b5" class="outline-2">
+<h2 id="org269d9b5"><span class="section-number-2">3</span> Bayesian models, yo!</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>Step one: take a ten percent sample</li>
+<li>Step two: wait loads of time for model to fit, give up in disgust</li>
+<li>Step 3: take a smaller sample</li>
+<li>Step 4: actually look at some data, huzzah!</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-R">smaller_sample <span style="color: #40e0d0;">&lt;-</span> sample_frac(prop_sample, size=.1)
+</pre>
+</div>
+
+
+<div class="org-src-container">
+<pre class="src src-R">
+<span style="color: #40e0d0;">require</span>(rstanarm)
+stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price, base=10)~year+(1|county), data=smaller_sample)
+stanlm2 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~(month|year)+(1|county),
+                     data=smaller_sample)
+stanlm3 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+postal_code+
+                         (month|year)+(1|county),
+                     data=smaller_sample)
+stanlm4 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+
+                         (postal_code|year)+(1|county), data=smaller_sample)
+dub_sample <span style="color: #40e0d0;">&lt;-</span> filter(prop_df2, county==<span style="color: #bdb76b;">"Dublin"</span>) <span style="color: #40e0d0;">%&gt;%</span> sample_frac(size=0.1)
+
+stanlm_dub <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+(postal_code|year), data=dub_sample)
+</pre>
+</div>
+<p>
+So, using a smaller sample, and using a log-transform and normal
+approximation for price, we're in business. 
+</p>
+
+<p>
+The first model just fits a trend across year with county level intercepts.
+In R's formula notation it looks like the below
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R">stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~year+(1|county), data=smaller_sample)
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>We need lmer because of the grouping factors</li>
+<li>I tried base 10 with this one, to make it easier to convert the
+coefficients in my head</li>
+</ul>
+
+<p>
+We can use the marvellous <b>broom</b> package to grab some details out of the model.
+Before that though, we can call the eponymous plot() generic. 
+</p>
+
+
+<div class="figure">
+<p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" />
+</p>
+</div>
+
+<ul class="org-ul">
+<li>This model kinda sucks.</li>
+<li>The intercept dominates, and there's little to nothing of interest.</li>
+</ul>
+
+
+<div class="figure">
+<p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" />
+</p>
+</div>
+
+
+<div class="figure">
+<p><img src="hist1.png" alt="hist1.png" />
+</p>
+</div>
+
+<p>
+This is a histogram of the estimates.
+</p>
+
+<p>
+I should probably break these out into a number of plots.
+On my hi-res laptop screen they look cool, though. 
+</p>
+
+<p>
+We can extract the fitted values and the residuals using the augment function from broom. 
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom)
+auglm <span style="color: #40e0d0;">&lt;-</span> augment(stanlm)
+
+names(auglm)[1] <span style="color: #40e0d0;">&lt;-</span> <span style="color: #bdb76b;">"log_price"</span>
+head(auglm)
+</pre>
+</div>
+
+<p>
+so we have the fitted values, the original target variable, our covariates and the residuals
+Truly we are priveleged to be alive in such a time. To be fair, broom is very nice. 
+</p>
+
+<p>
+<img src="fitresid1.png" alt="fitresid1.png" />
+The residuals increase as we hit the tails, definitely.
+In general, we're not accounting for the trend across time here. 
+</p>
+
+
+
+<div class="figure">
+<p><img src="fitresid1.png" alt="fitresid1.png" />
+</p>
+</div>
+
+<ul class="org-ul">
+<li>Our predictions aren't entirely noise, but we don't handle the tails well at all.</li>
+</ul>
+
+
+<div class="figure">
+<p><img src="ppcheck1.png" alt="ppcheck1.png" />
+</p>
+</div>
+
+<p>
+<b>pp_check</b> (from rstanarm) simulates 100 replications of Y given the model, and plots thea
+results against the actual y. This provides a quick and useful diagnostic of the model and
+whether or not it make sense. 
+</p>
+
+<div class="org-src-container">
+<pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom)
+tidy(stanlm3)
+</pre>
+</div>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">term</th>
+<th scope="col" class="org-right">estimate</th>
+<th scope="col" class="org-right">std.error</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left">(Intercept)</td>
+<td class="org-right">11.3627285946104</td>
+<td class="org-right">0.154733297782236</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 10</td>
+<td class="org-right">-0.41109031117536</td>
+<td class="org-right">0.26829141909359</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 11</td>
+<td class="org-right">-0.173802967126711</td>
+<td class="org-right">0.167608728709565</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 12</td>
+<td class="org-right">0.211707512805625</td>
+<td class="org-right">0.161083990692815</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 13</td>
+<td class="org-right">0.351751352766792</td>
+<td class="org-right">0.174571463002829</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 14</td>
+<td class="org-right">0.850544366948465</td>
+<td class="org-right">0.175828046070598</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 15</td>
+<td class="org-right">0.104697991708676</td>
+<td class="org-right">0.144349977022833</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 16</td>
+<td class="org-right">0.550930577885318</td>
+<td class="org-right">0.164866411221373</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 17</td>
+<td class="org-right">-0.115676682206768</td>
+<td class="org-right">0.2504145301438</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 18</td>
+<td class="org-right">0.522518676746559</td>
+<td class="org-right">0.156919249177992</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 2</td>
+<td class="org-right">0.35072605038513</td>
+<td class="org-right">0.203699368253987</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 20</td>
+<td class="org-right">0.0145478008340139</td>
+<td class="org-right">0.285285555125346</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 22</td>
+<td class="org-right">0.100125034977552</td>
+<td class="org-right">0.185726468173443</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 24</td>
+<td class="org-right">0.0636090405878655</td>
+<td class="org-right">0.153543332710066</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 3</td>
+<td class="org-right">0.401971561031699</td>
+<td class="org-right">0.175861941946171</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 4</td>
+<td class="org-right">0.584983004574166</td>
+<td class="org-right">0.174661206704215</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 5</td>
+<td class="org-right">0.366239167558408</td>
+<td class="org-right">0.181184171309947</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 6</td>
+<td class="org-right">0.911124521428617</td>
+<td class="org-right">0.208110364717554</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 6w</td>
+<td class="org-right">0.671847431154482</td>
+<td class="org-right">0.306615927075424</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 7</td>
+<td class="org-right">0.317970976360636</td>
+<td class="org-right">0.164814422402402</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 8</td>
+<td class="org-right">0.0360325510562647</td>
+<td class="org-right">0.163860965698879</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_codeDublin 9</td>
+<td class="org-right">0.316256275733578</td>
+<td class="org-right">0.167580242195925</td>
+</tr>
+
+<tr>
+<td class="org-left">postal_code(Missing)</td>
+<td class="org-right">0.281938411974061</td>
+<td class="org-right">0.130642614164143</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-org057c1be" class="outline-2">
+<h2 id="org057c1be"><span class="section-number-2">4</span> Some MCMC, for some reason</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li>Example taken from Appendix C, Bayesian Data Analysis (3rd Ed)</li>
+</ul>
+
+<div class="org-src-container">
+<pre class="src src-stan"><span style="color: #ffffff;">data</span> {
+  <span style="color: #7fffd4;">int</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">J</span>; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">num schools</span>
+  <span style="color: #7fffd4;">real</span> <span style="color: #9acd32;">y</span>[J]; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">estimated treatment effects</span>
+  <span style="color: #7fffd4;">real</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">sigma</span>[J]; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">se effect estimates</span>
+}
+<span style="color: #ffffff;">parameters</span> {
+  <span style="color: #7fffd4;">real</span> <span style="color: #9acd32;">mu</span>;
+  <span style="color: #7fffd4;">real</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">tau</span>;
+  <span style="color: #7fffd4;">vector</span>[J] <span style="color: #9acd32;">eta</span>;
+
+}
+<span style="color: #ffffff;">transformed parameters</span> {
+  <span style="color: #7fffd4;">vector</span>[J] <span style="color: #9acd32;">theta</span>; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">school effects</span>
+  theta <span style="color: #40e0d0;">=</span> mu + tau*eta;
+}
+<span style="color: #ffffff;">model</span> {
+  eta <span style="color: #40e0d0;">~</span> <span style="color: #98fb98;">normal</span>(0, 1);
+  y <span style="color: #40e0d0;">~</span> <span style="color: #98fb98;">normal</span>(theta, sigma);
+}
+</pre>
+</div>
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">school</td>
+<td class="org-right">estimate</td>
+<td class="org-right">sd</td>
+</tr>
+
+<tr>
+<td class="org-left">A</td>
+<td class="org-right">28</td>
+<td class="org-right">15</td>
+</tr>
+
+<tr>
+<td class="org-left">B</td>
+<td class="org-right">8</td>
+<td class="org-right">10</td>
+</tr>
+
+<tr>
+<td class="org-left">C</td>
+<td class="org-right">-3</td>
+<td class="org-right">16</td>
+</tr>
+
+<tr>
+<td class="org-left">D</td>
+<td class="org-right">7</td>
+<td class="org-right">11</td>
+</tr>
+
+<tr>
+<td class="org-left">E</td>
+<td class="org-right">-1</td>
+<td class="org-right">9</td>
+</tr>
+
+<tr>
+<td class="org-left">F</td>
+<td class="org-right">1</td>
+<td class="org-right">11</td>
+</tr>
+
+<tr>
+<td class="org-left">G</td>
+<td class="org-right">18</td>
+<td class="org-right">10</td>
+</tr>
+
+<tr>
+<td class="org-left">H</td>
+<td class="org-right">12</td>
+<td class="org-right">18</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-R">schools <span style="color: #40e0d0;">&lt;-</span> read.csv(<span style="color: #bdb76b;">"schools.csv"</span>)
+J  <span style="color: #40e0d0;">&lt;-</span> nrow(schools)
+y <span style="color: #40e0d0;">&lt;-</span> schools$estimate
+sigma <span style="color: #40e0d0;">&lt;-</span> schools$sd
+<span style="color: #40e0d0;">library</span>(rstan)
+schools_fit <span style="color: #40e0d0;">&lt;-</span> stan(file=<span style="color: #bdb76b;">"schools.stan"</span>,
+                    data=c(<span style="color: #bdb76b;">"J"</span>, <span style="color: #bdb76b;">"y"</span>, <span style="color: #bdb76b;">"sigma"</span>),
+                    iter=2000, chains=4)
+</pre>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" class="footnum" href="#fnr.1">1</a></sup> <div class="footpara"><p class="footpara">
+In fact, it was done via banks, but it doesn't really have the same ring to it now, does it? 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.2" class="footnum" href="#fnr.2">2</a></sup> <div class="footpara"><p class="footpara">
+actually I've been in the same house for many years, but I likes a good simile. 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.3" class="footnum" href="#fnr.3">3</a></sup> <div class="footpara"><p class="footpara">
+by the Greens actually, so at least I don't feel my vote for them was <b>entirely</b> wasted
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.4" class="footnum" href="#fnr.4">4</a></sup> <div class="footpara"><p class="footpara">
+we do now, but they are not on any of the addresses
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.5" class="footnum" href="#fnr.5">5</a></sup> <div class="footpara"><p class="footpara">
+they also provide commercial data (which I just noticed), but I am resisting the urge to become distracted
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.6" class="footnum" href="#fnr.6">6</a></sup> <div class="footpara"><p class="footpara">
+for very nerdy, boring values of show
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.7" class="footnum" href="#fnr.7">7</a></sup> <div class="footpara"><p class="footpara">
+definitely. 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.8" class="footnum" href="#fnr.8">8</a></sup> <div class="footpara"><p class="footpara">
+You could use any character, but I like underscores. It's
+totally pointless though, so really we should just standardise on one <sup><a id="fnr.9" class="footref" href="#fn.9">9</a></sup>
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.9" class="footnum" href="#fnr.9">9</a></sup> <div class="footpara"><p class="footpara">
+clearly underscores
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.10" class="footnum" href="#fnr.10">10</a></sup> <div class="footpara"><p class="footpara">
+this whole lack of understanding of encodings is deeply embarassing
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.11" class="footnum" href="#fnr.11">11</a></sup> <div class="footpara"><p class="footpara">
+look at how well I'm resisting distraction!
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.12" class="footnum" href="#fnr.12">12</a></sup> <div class="footpara"><p class="footpara">
+turns out sampling is pretty cool, who knew? 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.13" class="footnum" href="#fnr.13">13</a></sup> <div class="footpara"><p class="footpara">
+or you could just log it and get one with building a CNN I
+guess
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.14" class="footnum" href="#fnr.14">14</a></sup> <div class="footpara"><p class="footpara">
+that dude finally made his money back, after opening really
+expensive apartments just as the crash hit
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.15" class="footnum" href="#fnr.15">15</a></sup> <div class="footpara"><p class="footpara">
+geddit?
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.16" class="footnum" href="#fnr.16">16</a></sup> <div class="footpara"><p class="footpara">
+assuming 1mn households. I should probably check this with the
+CSO
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.17" class="footnum" href="#fnr.17">17</a></sup> <div class="footpara"><p class="footpara">
+yes, this is really subjective, like almost everything in data
+analysis. The advantage here is that I provide code so people can
+change that however they want
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.18" class="footnum" href="#fnr.18">18</a></sup> <div class="footpara"><p class="footpara">
+i.e. by hand
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.19" class="footnum" href="#fnr.19">19</a></sup> <div class="footpara"><p class="footpara">
+but i did in fact read it. Reading any notes provided is a super-power. 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.20" class="footnum" href="#fnr.20">20</a></sup> <div class="footpara"><p class="footpara">
+I don't think anyone except me worries about this
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.21" class="footnum" href="#fnr.21">21</a></sup> <div class="footpara"><p class="footpara">
+we all partied, dontcha know? 
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.22" class="footnum" href="#fnr.22">22</a></sup> <div class="footpara"><p class="footpara">
+I am still not sure if this was just accidental, or malicious
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.23" class="footnum" href="#fnr.23">23</a></sup> <div class="footpara"><p class="footpara">
+I checked with a reasonably cheap provider, and it would be 800 quid for the whole sample
+</p></div></div>
+
+<div class="footdef"><sup><a id="fn.24" class="footnum" href="#fnr.24">24</a></sup> <div class="footpara"><p class="footpara">
+though presumably even if I built a working method, it would stop working as more people did it
+</p></div></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<p class="author">Author: richie</p>
+<p class="date">Created: 2018-12-01 Sat 11:21</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
