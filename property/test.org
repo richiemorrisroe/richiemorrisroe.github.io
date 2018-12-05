@@ -1,0 +1,26 @@
+#+OPTIONS: html-link-use-abs-url:nil html-postamble:auto
+#+OPTIONS: html-preamble:t html-scripts:t html-style:t
+#+OPTIONS: html5-fancy:nil tex:t
+#+CREATOR: <a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.0.50.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)
+#+HTML_CONTAINER: div
+#+HTML_DOCTYPE: xhtml-strict
+#+HTML_HEAD:
+#+HTML_HEAD_EXTRA:
+#+HTML_LINK_HOME:
+#+HTML_LINK_UP:
+#+HTML_MATHJAX:
+#+INFOJS_OPT:
+#+LATEX_HEADER:
+* This is an Org Headline
+
+- Here is a lis
+- Here is more of a list. 
+
+I have a [[https://github.com/richiemorrisroe/stockfighterr][repo]] for a programming game. It's lots of fun. 
+* 
+** This is a smaller headline
+
+1.  This is a numbered list
+Or maybe not?
+
+
