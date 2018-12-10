@@ -1181,418 +1181,309 @@ I'm calling it done.
 </div>
 </div>
 
-<div id="outline-container-org4d1050e" class="outline-2">
-<h2 id="org4d1050e"><span class="section-number-2">2</span> Bayesian models, yo!</h2>
-<div class="outline-text-2" id="text-2">
-<ul class="org-ul">
-<li>Step one: take a ten percent sample</li>
-<li>Step two: wait loads of time for model to fit, give up in disgust</li>
-<li>Step 3: take a smaller sample</li>
-<li>Step 4: actually look at some data, huzzah!</li>
-</ul>
-
-<div class="org-src-container">
-<pre class="src src-R">smaller_sample <span style="color: #40e0d0;">&lt;-</span> sample_frac(prop_sample, size=.1)
-</pre>
-</div>
-
-
-<div class="org-src-container">
-<pre class="src src-R">
-<span style="color: #40e0d0;">require</span>(rstanarm)
-stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price, base=10)~year+(1|county), data=smaller_sample)
-stanlm2 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~(month|year)+(1|county),
-                     data=smaller_sample)
-stanlm3 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+postal_code+
-                         (month|year)+(1|county),
-                     data=smaller_sample)
-stanlm4 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+
-                         (postal_code|year)+(1|county), data=smaller_sample)
-dub_sample <span style="color: #40e0d0;">&lt;-</span> filter(prop_df2, county==<span style="color: #bdb76b;">"Dublin"</span>) <span style="color: #40e0d0;">%&gt;%</span> sample_frac(size=0.1)
-
-stanlm_dub <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+(postal_code|year), data=dub_sample)
-</pre>
-</div>
-<p>
-So, using a smaller sample, and using a log-transform and normal
-approximation for price, we're in business. 
-</p>
-
-<p>
-The first model just fits a trend across year with county level intercepts.
-In R's formula notation it looks like the below
-</p>
-
-<div class="org-src-container">
-<pre class="src src-R">stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~year+(1|county), data=smaller_sample)
-</pre>
-</div>
-
-<ul class="org-ul">
-<li>We need lmer because of the grouping factors</li>
-<li>I tried base 10 with this one, to make it easier to convert the
-coefficients in my head</li>
-</ul>
-
-<p>
-We can use the marvellous <b>broom</b> package to grab some details out of the model.
-Before that though, we can call the eponymous plot() generic. 
-</p>
-
-
-<div class="figure">
-<p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" />
-</p>
-</div>
-
-<ul class="org-ul">
-<li>This model kinda sucks.</li>
-<li>The intercept dominates, and there's little to nothing of interest.</li>
-</ul>
-
-
-<div class="figure">
-<p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" />
-</p>
-</div>
-
-
-<div class="figure">
-<p><img src="hist1.png" alt="hist1.png" />
-</p>
-</div>
-
-<p>
-This is a histogram of the estimates.
-</p>
-
-<p>
-I should probably break these out into a number of plots.
-On my hi-res laptop screen they look cool, though. 
-</p>
-
-<p>
-We can extract the fitted values and the residuals using the augment function from broom. 
-</p>
-
-<div class="org-src-container">
-<pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom)
-auglm <span style="color: #40e0d0;">&lt;-</span> augment(stanlm)
-
-names(auglm)[1] <span style="color: #40e0d0;">&lt;-</span> <span style="color: #bdb76b;">"log_price"</span>
-head(auglm)
-</pre>
-</div>
-
-<p>
-so we have the fitted values, the original target variable, our covariates and the residuals
-Truly we are priveleged to be alive in such a time. To be fair, broom is very nice. 
-</p>
-
-<p>
-<img src="fitresid1.png" alt="fitresid1.png" />
-The residuals increase as we hit the tails, definitely.
-In general, we're not accounting for the trend across time here. 
-</p>
-
-
-
-<div class="figure">
-<p><img src="fitresid1.png" alt="fitresid1.png" />
-</p>
-</div>
-
-<ul class="org-ul">
-<li>Our predictions aren't entirely noise, but we don't handle the tails well at all.</li>
-</ul>
-
-
-<div class="figure">
-<p><img src="ppcheck1.png" alt="ppcheck1.png" />
-</p>
-</div>
-
-<p>
-<b>pp_check</b> (from rstanarm) simulates 100 replications of Y given the model, and plots thea
-results against the actual y. This provides a quick and useful diagnostic of the model and
-whether or not it make sense. 
-</p>
-
-<div class="org-src-container">
-<pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom)
-tidy(stanlm3)
-</pre>
-</div>
-
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">term</th>
-<th scope="col" class="org-right">estimate</th>
-<th scope="col" class="org-right">std.error</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">(Intercept)</td>
-<td class="org-right">11.3627285946104</td>
-<td class="org-right">0.154733297782236</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 10</td>
-<td class="org-right">-0.41109031117536</td>
-<td class="org-right">0.26829141909359</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 11</td>
-<td class="org-right">-0.173802967126711</td>
-<td class="org-right">0.167608728709565</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 12</td>
-<td class="org-right">0.211707512805625</td>
-<td class="org-right">0.161083990692815</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 13</td>
-<td class="org-right">0.351751352766792</td>
-<td class="org-right">0.174571463002829</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 14</td>
-<td class="org-right">0.850544366948465</td>
-<td class="org-right">0.175828046070598</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 15</td>
-<td class="org-right">0.104697991708676</td>
-<td class="org-right">0.144349977022833</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 16</td>
-<td class="org-right">0.550930577885318</td>
-<td class="org-right">0.164866411221373</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 17</td>
-<td class="org-right">-0.115676682206768</td>
-<td class="org-right">0.2504145301438</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 18</td>
-<td class="org-right">0.522518676746559</td>
-<td class="org-right">0.156919249177992</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 2</td>
-<td class="org-right">0.35072605038513</td>
-<td class="org-right">0.203699368253987</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 20</td>
-<td class="org-right">0.0145478008340139</td>
-<td class="org-right">0.285285555125346</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 22</td>
-<td class="org-right">0.100125034977552</td>
-<td class="org-right">0.185726468173443</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 24</td>
-<td class="org-right">0.0636090405878655</td>
-<td class="org-right">0.153543332710066</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 3</td>
-<td class="org-right">0.401971561031699</td>
-<td class="org-right">0.175861941946171</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 4</td>
-<td class="org-right">0.584983004574166</td>
-<td class="org-right">0.174661206704215</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 5</td>
-<td class="org-right">0.366239167558408</td>
-<td class="org-right">0.181184171309947</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 6</td>
-<td class="org-right">0.911124521428617</td>
-<td class="org-right">0.208110364717554</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 6w</td>
-<td class="org-right">0.671847431154482</td>
-<td class="org-right">0.306615927075424</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 7</td>
-<td class="org-right">0.317970976360636</td>
-<td class="org-right">0.164814422402402</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 8</td>
-<td class="org-right">0.0360325510562647</td>
-<td class="org-right">0.163860965698879</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_codeDublin 9</td>
-<td class="org-right">0.316256275733578</td>
-<td class="org-right">0.167580242195925</td>
-</tr>
-
-<tr>
-<td class="org-left">postal_code(Missing)</td>
-<td class="org-right">0.281938411974061</td>
-<td class="org-right">0.130642614164143</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-
-<div id="outline-container-org01b09e7" class="outline-2">
-<h2 id="org01b09e7"><span class="section-number-2">3</span> Some MCMC, for some reason</h2>
-<div class="outline-text-2" id="text-3">
-<ul class="org-ul">
-<li>Example taken from Appendix C, Bayesian Data Analysis (3rd Ed)</li>
-</ul>
-
-<div class="org-src-container">
-<pre class="src src-stan"><span style="color: #ffffff;">data</span> {
-  <span style="color: #7fffd4;">int</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">J</span>; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">num schools</span>
-  <span style="color: #7fffd4;">real</span> <span style="color: #9acd32;">y</span>[J]; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">estimated treatment effects</span>
-  <span style="color: #7fffd4;">real</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">sigma</span>[J]; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">se effect estimates</span>
-}
-<span style="color: #ffffff;">parameters</span> {
-  <span style="color: #7fffd4;">real</span> <span style="color: #9acd32;">mu</span>;
-  <span style="color: #7fffd4;">real</span>&lt;<span style="color: #ffffff;">lower</span><span style="color: #40e0d0;">=</span>0&gt; <span style="color: #9acd32;">tau</span>;
-  <span style="color: #7fffd4;">vector</span>[J] <span style="color: #9acd32;">eta</span>;
-
-}
-<span style="color: #ffffff;">transformed parameters</span> {
-  <span style="color: #7fffd4;">vector</span>[J] <span style="color: #9acd32;">theta</span>; <span style="color: #00cd66;">//</span><span style="color: #00cd66;">school effects</span>
-  theta <span style="color: #40e0d0;">=</span> mu + tau*eta;
-}
-<span style="color: #ffffff;">model</span> {
-  eta <span style="color: #40e0d0;">~</span> <span style="color: #98fb98;">normal</span>(0, 1);
-  y <span style="color: #40e0d0;">~</span> <span style="color: #98fb98;">normal</span>(theta, sigma);
-}
-</pre>
-</div>
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-right" />
-
-<col  class="org-right" />
-</colgroup>
-<tbody>
-<tr>
-<td class="org-left">school</td>
-<td class="org-right">estimate</td>
-<td class="org-right">sd</td>
-</tr>
-
-<tr>
-<td class="org-left">A</td>
-<td class="org-right">28</td>
-<td class="org-right">15</td>
-</tr>
-
-<tr>
-<td class="org-left">B</td>
-<td class="org-right">8</td>
-<td class="org-right">10</td>
-</tr>
-
-<tr>
-<td class="org-left">C</td>
-<td class="org-right">-3</td>
-<td class="org-right">16</td>
-</tr>
-
-<tr>
-<td class="org-left">D</td>
-<td class="org-right">7</td>
-<td class="org-right">11</td>
-</tr>
-
-<tr>
-<td class="org-left">E</td>
-<td class="org-right">-1</td>
-<td class="org-right">9</td>
-</tr>
-
-<tr>
-<td class="org-left">F</td>
-<td class="org-right">1</td>
-<td class="org-right">11</td>
-</tr>
-
-<tr>
-<td class="org-left">G</td>
-<td class="org-right">18</td>
-<td class="org-right">10</td>
-</tr>
-
-<tr>
-<td class="org-left">H</td>
-<td class="org-right">12</td>
-<td class="org-right">18</td>
-</tr>
-</tbody>
-</table>
-
-<div class="org-src-container">
-<pre class="src src-R">schools <span style="color: #40e0d0;">&lt;-</span> read.csv(<span style="color: #bdb76b;">"schools.csv"</span>)
-J  <span style="color: #40e0d0;">&lt;-</span> nrow(schools)
-y <span style="color: #40e0d0;">&lt;-</span> schools$estimate
-sigma <span style="color: #40e0d0;">&lt;-</span> schools$sd
-<span style="color: #40e0d0;">library</span>(rstan)
-schools_fit <span style="color: #40e0d0;">&lt;-</span> stan(file=<span style="color: #bdb76b;">"schools.stan"</span>,
-                    data=c(<span style="color: #bdb76b;">"J"</span>, <span style="color: #bdb76b;">"y"</span>, <span style="color: #bdb76b;">"sigma"</span>),
-                    iter=2000, chains=4)
-</pre>
-</div>
-</div>
-</div>
+<!-- <div id="outline-container-org4d1050e" class="outline-2"> -->
+<!-- <h2 id="org4d1050e"><span class="section-number-2">2</span> Bayesian models, yo!</h2> -->
+<!-- <div class="outline-text-2" id="text-2"> -->
+<!-- <ul class="org-ul"> -->
+<!-- <li>Step one: take a ten percent sample</li> -->
+<!-- <li>Step two: wait loads of time for model to fit, give up in disgust</li> -->
+<!-- <li>Step 3: take a smaller sample</li> -->
+<!-- <li>Step 4: actually look at some data, huzzah!</li> -->
+<!-- </ul> -->
+
+<!-- <div class="org-src-container"> -->
+<!-- <pre class="src src-R">smaller_sample <span style="color: #40e0d0;">&lt;-</span> sample_frac(prop_sample, size=.1) -->
+<!-- </pre> -->
+<!-- </div> -->
+
+
+<!-- <div class="org-src-container"> -->
+<!-- <pre class="src src-R"> -->
+<!-- <span style="color: #40e0d0;">require</span>(rstanarm) -->
+<!-- stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price, base=10)~year+(1|county), data=smaller_sample) -->
+<!-- stanlm2 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~(month|year)+(1|county), -->
+<!--                      data=smaller_sample) -->
+<!-- stanlm3 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+postal_code+ -->
+<!--                          (month|year)+(1|county), -->
+<!--                      data=smaller_sample) -->
+<!-- stanlm4 <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+ -->
+<!--                          (postal_code|year)+(1|county), data=smaller_sample) -->
+<!-- dub_sample <span style="color: #40e0d0;">&lt;-</span> filter(prop_df2, county==<span style="color: #bdb76b;">"Dublin"</span>) <span style="color: #40e0d0;">%&gt;%</span> sample_frac(size=0.1) -->
+
+<!-- stanlm_dub <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~+vat_exclusive+not_full_market_price+(postal_code|year), data=dub_sample) -->
+<!-- </pre> -->
+<!-- </div> -->
+<!-- <p> -->
+<!-- So, using a smaller sample, and using a log-transform and normal -->
+<!-- approximation for price, we're in business.  -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- The first model just fits a trend across year with county level intercepts. -->
+<!-- In R's formula notation it looks like the below -->
+<!-- </p> -->
+
+<!-- <div class="org-src-container"> -->
+<!-- <pre class="src src-R">stanlm <span style="color: #40e0d0;">&lt;-</span> stan_lmer(log(price)~year+(1|county), data=smaller_sample) -->
+<!-- </pre> -->
+<!-- </div> -->
+
+<!-- <ul class="org-ul"> -->
+<!-- <li>We need lmer because of the grouping factors</li> -->
+<!-- <li>I tried base 10 with this one, to make it easier to convert the -->
+<!-- coefficients in my head</li> -->
+<!-- </ul> -->
+
+<!-- <p> -->
+<!-- We can use the marvellous <b>broom</b> package to grab some details out of the model. -->
+<!-- Before that though, we can call the eponymous plot() generic.  -->
+<!-- </p> -->
+
+
+<!-- <div class="figure"> -->
+<!-- <p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" /> -->
+<!-- </p> -->
+<!-- </div> -->
+
+<!-- <ul class="org-ul"> -->
+<!-- <li>This model kinda sucks.</li> -->
+<!-- <li>The intercept dominates, and there's little to nothing of interest.</li> -->
+<!-- </ul> -->
+
+
+<!-- <div class="figure"> -->
+<!-- <p><img src="stanlm1pl1.png" alt="stanlm1pl1.png" /> -->
+<!-- </p> -->
+<!-- </div> -->
+
+
+<!-- <div class="figure"> -->
+<!-- <p><img src="hist1.png" alt="hist1.png" /> -->
+<!-- </p> -->
+<!-- </div> -->
+
+<!-- <p> -->
+<!-- This is a histogram of the estimates. -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- I should probably break these out into a number of plots. -->
+<!-- On my hi-res laptop screen they look cool, though.  -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- We can extract the fitted values and the residuals using the augment function from broom.  -->
+<!-- </p> -->
+
+<!-- <div class="org-src-container"> -->
+<!-- <pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom) -->
+<!-- auglm <span style="color: #40e0d0;">&lt;-</span> augment(stanlm) -->
+
+<!-- names(auglm)[1] <span style="color: #40e0d0;">&lt;-</span> <span style="color: #bdb76b;">"log_price"</span> -->
+<!-- head(auglm) -->
+<!-- </pre> -->
+<!-- </div> -->
+
+<!-- <p> -->
+<!-- so we have the fitted values, the original target variable, our covariates and the residuals -->
+<!-- Truly we are priveleged to be alive in such a time. To be fair, broom is very nice.  -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- <img src="fitresid1.png" alt="fitresid1.png" /> -->
+<!-- The residuals increase as we hit the tails, definitely. -->
+<!-- In general, we're not accounting for the trend across time here.  -->
+<!-- </p> -->
+
+
+
+<!-- <div class="figure"> -->
+<!-- <p><img src="fitresid1.png" alt="fitresid1.png" /> -->
+<!-- </p> -->
+<!-- </div> -->
+
+<!-- <ul class="org-ul"> -->
+<!-- <li>Our predictions aren't entirely noise, but we don't handle the tails well at all.</li> -->
+<!-- </ul> -->
+
+
+<!-- <div class="figure"> -->
+<!-- <p><img src="ppcheck1.png" alt="ppcheck1.png" /> -->
+<!-- </p> -->
+<!-- </div> -->
+
+<!-- <p> -->
+<!-- <b>pp_check</b> (from rstanarm) simulates 100 replications of Y given the model, and plots thea -->
+<!-- results against the actual y. This provides a quick and useful diagnostic of the model and -->
+<!-- whether or not it make sense.  -->
+<!-- </p> -->
+
+<!-- <div class="org-src-container"> -->
+<!-- <pre class="src src-R"><span style="color: #40e0d0;">require</span>(broom) -->
+<!-- tidy(stanlm3) -->
+<!-- </pre> -->
+<!-- </div> -->
+
+<!-- <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides"> -->
+
+
+<!-- <colgroup> -->
+<!-- <col  class="org-left" /> -->
+
+<!-- <col  class="org-right" /> -->
+
+<!-- <col  class="org-right" /> -->
+<!-- </colgroup> -->
+<!-- <thead> -->
+<!-- <tr> -->
+<!-- <th scope="col" class="org-left">term</th> -->
+<!-- <th scope="col" class="org-right">estimate</th> -->
+<!-- <th scope="col" class="org-right">std.error</th> -->
+<!-- </tr> -->
+<!-- </thead> -->
+<!-- <tbody> -->
+<!-- <tr> -->
+<!-- <td class="org-left">(Intercept)</td> -->
+<!-- <td class="org-right">11.3627285946104</td> -->
+<!-- <td class="org-right">0.154733297782236</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 10</td> -->
+<!-- <td class="org-right">-0.41109031117536</td> -->
+<!-- <td class="org-right">0.26829141909359</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 11</td> -->
+<!-- <td class="org-right">-0.173802967126711</td> -->
+<!-- <td class="org-right">0.167608728709565</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 12</td> -->
+<!-- <td class="org-right">0.211707512805625</td> -->
+<!-- <td class="org-right">0.161083990692815</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 13</td> -->
+<!-- <td class="org-right">0.351751352766792</td> -->
+<!-- <td class="org-right">0.174571463002829</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 14</td> -->
+<!-- <td class="org-right">0.850544366948465</td> -->
+<!-- <td class="org-right">0.175828046070598</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 15</td> -->
+<!-- <td class="org-right">0.104697991708676</td> -->
+<!-- <td class="org-right">0.144349977022833</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 16</td> -->
+<!-- <td class="org-right">0.550930577885318</td> -->
+<!-- <td class="org-right">0.164866411221373</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 17</td> -->
+<!-- <td class="org-right">-0.115676682206768</td> -->
+<!-- <td class="org-right">0.2504145301438</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 18</td> -->
+<!-- <td class="org-right">0.522518676746559</td> -->
+<!-- <td class="org-right">0.156919249177992</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 2</td> -->
+<!-- <td class="org-right">0.35072605038513</td> -->
+<!-- <td class="org-right">0.203699368253987</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 20</td> -->
+<!-- <td class="org-right">0.0145478008340139</td> -->
+<!-- <td class="org-right">0.285285555125346</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 22</td> -->
+<!-- <td class="org-right">0.100125034977552</td> -->
+<!-- <td class="org-right">0.185726468173443</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 24</td> -->
+<!-- <td class="org-right">0.0636090405878655</td> -->
+<!-- <td class="org-right">0.153543332710066</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 3</td> -->
+<!-- <td class="org-right">0.401971561031699</td> -->
+<!-- <td class="org-right">0.175861941946171</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 4</td> -->
+<!-- <td class="org-right">0.584983004574166</td> -->
+<!-- <td class="org-right">0.174661206704215</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 5</td> -->
+<!-- <td class="org-right">0.366239167558408</td> -->
+<!-- <td class="org-right">0.181184171309947</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 6</td> -->
+<!-- <td class="org-right">0.911124521428617</td> -->
+<!-- <td class="org-right">0.208110364717554</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 6w</td> -->
+<!-- <td class="org-right">0.671847431154482</td> -->
+<!-- <td class="org-right">0.306615927075424</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 7</td> -->
+<!-- <td class="org-right">0.317970976360636</td> -->
+<!-- <td class="org-right">0.164814422402402</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 8</td> -->
+<!-- <td class="org-right">0.0360325510562647</td> -->
+<!-- <td class="org-right">0.163860965698879</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_codeDublin 9</td> -->
+<!-- <td class="org-right">0.316256275733578</td> -->
+<!-- <td class="org-right">0.167580242195925</td> -->
+<!-- </tr> -->
+
+<!-- <tr> -->
+<!-- <td class="org-left">postal_code(Missing)</td> -->
+<!-- <td class="org-right">0.281938411974061</td> -->
+<!-- <td class="org-right">0.130642614164143</td> -->
+<!-- </tr> -->
+<!-- </tbody> -->
+<!-- </table> -->
+<!-- </div> -->
+<!-- </div> -->
+
 <div id="footnotes">
 <h2 class="footnotes">Footnotes: </h2>
 <div id="text-footnotes">
