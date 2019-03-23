@@ -1,0 +1,766 @@
+#+PROPERTY: header-args:python :exports code :eval no-export
+#+TITLE: PyTorch: Completely Uninformed Image Modelling
+#+AUTHOR: Richie Morrisroe
+#+OPTIONS: toc:nil
+#+OPTIONS: ^:nil
+* Pytorch
+
+[[http://pytorch.org/][PyTorch]] is a framework for GPU computation in Python. It's a re-implementation of Torch, which was a project in Lua, which apparently everyone hates [fn:1]. This document
+reviews PyTorch, and (perhaps more importantly) shows you how to 
+apply some pretty simple CNN's and RNN's to new data. 
+
+I think this is pretty important, as many tutorials use the same data, and I was
+pretty suspicious about the insane accuracies I saw on various data-sets. 
+** How do I install it?
+You can go [[https://pytorch.org/get-started/locally/][here]] for instructions. I like running my stuff locally (and
+have a GPU, so those are the instructions I used. )
+
+I use conda, so that's what my instructions are based on. 
+#+BEGIN_SRC sh
+conda create -n pytorch
+source activate pytorch
+conda install pytorch torchvision cudatoolkit=9.0 -c pytorch 
+conda install -c conda-forge autopep8 yapf flake8
+conda install scipy numpy sklearn pandas seaborn requests  jupyter
+conda install -c conda-forge scikit-image
+#+END_SRC
+This is for CUDA 9.0 (which must be installed), Python 3 and does
+require [[https://conda.io/][Conda]]. .If you use Python, you should already be using conda
+Note that the above is taking a while Like long enough that's annoying
+me as I write this, but I guess that reproducibility is a harsh
+mistress :/. Note that i add a bunch of other packages. These are for the venv,
+so that I get all of my IDE necessities [fn:2]. 
+** Basic Usage
+
+#+BEGIN_SRC python :session
+import torch as torch
+import torchvision as tv
+#+END_SRC
+
+#+RESULTS:
+
+Torch is the main package, which has loads of subpackages (autograd,
+nn and more) torchvision is a collection of uilities for image
+learning. It has transforms, and a dataset and model library, all of
+which are really useful.
+
+#+BEGIN_SRC python :session 
+x = torch.Tensor(5, 3)
+y = torch.rand(5, 3)
+x + y
+#+END_SRC
+
+#+RESULTS:
+: 
+:  6.4246e+08  2.6495e-01  5.4472e-01
+:  3.6169e-01  8.8263e-01  8.6725e-01
+:  9.4068e-02         nan  2.2952e+08
+:  5.5131e-02  4.3398e-01  8.6512e-01
+:  8.1313e-01  3.8932e-01  6.7911e-01
+: [torch.FloatTensor of size 5x3]
+
+** Overall API
+Torch: Tensor (i.e. ndarray ) library, torch.autograd has features for
+ automatic differentiation, torch.nn is a neural network library,
+ torch.optim has standard optimisation methods (SGD, RMSProp, etc),
+ torch.multiprocessing has magical memory sharing and torch.utils
+ contains loading and training utility functions. For more, check out
+ their [[http://pytorch.org/about/][about page]]. We'll review a bunch of this stuff throughout this
+ document.
+** Sizes and Shapes
+
+#+BEGIN_SRC python :session :results output
+y = torch.randn(2, 3)
+print(y.size())
+# like np.shape for ndarray
+#+END_SRC
+So the size function is essentially equivalent to np.shape,
+returning either a scalar (if vector), or a list of dimensions. 
+
+
+
+#+RESULTS:
+=torch.Size([5, 3])
+
+
+** Addition Ops
+#+BEGIN_SRC python :session 
+x + y
+z = torch.zeros([5, 3])
+torch.add(x, y)
+print(th.add(x, y))
+torch.add(z, y, out=z)
+x.add_(y)
+#+END_SRC
+
+#+RESULTS:
+: 
+:  6.4246e+08  7.9484e-01  1.6342e+00
+:  1.0851e+00  2.6479e+00  2.6017e+00
+:  2.8220e-01         nan  2.2952e+08
+:  1.6539e-01  1.3020e+00  2.5954e+00
+:  2.4394e+00  1.1680e+00  2.0373e+00
+: [torch.FloatTensor of size 5x3]
+
+Addition can be done in multiple ways: We can assign the value to an
+out tensor as in the last example; alternatively, 
+functions prepended with an _ mutate their first argument, which
+is standard throughout the entire library. 
+
+I like the underscore convention, as long as it's consistent.
+Possibly a recipe for disaster if people don't know what they're doing. 
+
+** Indexing
+
+#+BEGIN_SRC python :session :results none :eval no
+print(x[:,1])
+#x[R,C]
+#+END_SRC
+Pytorch uses Row, Column indices, which tend to be standardised across multiple languages now. 
+Note that 3d Tensors (i.e. for images) can have a minibatch dimension giving the number of observations in each minibatch.
+This is normally the first dimension. 
+- Numpy uses Height * Width * Colour, Torch uses Colour * Height *
+  Width, which means that we  require conversion to transpose the matrices (examples
+  below)
+** Numpy Interaction
+
+#+BEGIN_SRC python :session :results none
+a = torch.ones(5)
+print(a)
+b = a.numpy()
+print(b)
+#+END_SRC
+
+Conversion from and to numpy is pretty seamless (as is conversion from
+gpu to cpu). 
+
+
+** CUDA (yay!)
+
+#+BEGIN_SRC python :session :results none
+if torch.cuda.is_available():
+    x = x.cuda()
+    y = y.cuda()
+    z = x + y
+
+z_cpu = z.cpu()
+#+END_SRC
+If you can get CUDA to work, the above is really easy. However,
+getting CUDA to work can be an exercise in frustration. You'll need
+all the drivers (available from the apt repos, assuming you're using
+Ubuntu). Then you need to install CUDA globally, set LD_LIBRARY_PATH
+so that the conda libraries can find your CUDA, and then pray.
+
+It's gotten better in the last year or two, but it's still painful.
+It is unlikely to completely brick your machine these days [fn:3]
+
+
+# - CUDA interop is easy
+# - Converting back is a simple ~cpu~ call
+** Autograd
+#+BEGIN_SRC python :session :results none
+from torch.autograd import Variable
+x = Variable(torch.ones((2, 2)))
+y = x + 2
+print(y)
+z = y * y * 3
+out = z.mean()
+print(z, out)
+out.backward(retain_graph=True)
+#+END_SRC
+This is probably the coolest thing about PyTorch. It implements full
+reverse mode auto-differentiation. This is done efficiently with a
+combination of memoizing and recursive applications of the chain rule.
+These variables are inherently stateful, and thus idempotency is not
+preserved So eventually, repeated calls to backward leave you with a
+constant
+* Gradients
+#+BEGIN_SRC python :session :results none
+x = torch.randn(3, requires_grad=True)
+y = x * 2
+while y.data.norm() < 1000:
+    y = y * 2
+
+print(y)
+gradients = torch.FloatTensor([0.1, 1.0, 0.0001])
+y.backward(gradients)
+print(x.grad)
+#+END_SRC
+* Loss Functions :noexport:
+
+#+BEGIN_SRC python :session :results none :exports code
+import torch.nn.functional as F
+#+END_SRC
+
+** Transforms
+#+BEGIN_SRC python :session :results none
+import torch
+import torchvision
+import torchvision.transforms as transforms
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5),
+                          (0.5, 0.5, 0.5))]
+
+)
+#+END_SRC
+
+#+RESULTS:
+| __builtins__ | __cached__ | __doc__ | __file__ | __loader__ | __name__ | __package__ | __path__ | __spec__ | absolute_import | backcompat | division | hooks | print_function | unicode_literals |
+
+Transforms are applied at load time, so the work is spread over the
+minibatches. To be fair, time loading data and transferring it to the
+GPU will take most of the time anyway. 
+~RandomCrop~ can be used, which is data augmentation, and can be useful
+if your images can handle it [fn:4]. 
+** DataLoaders
+#+BEGIN_SRC python :session :results none
+import torch.utils.data as data
+trainset = torchvision.datasets.CIFAR10(root='./data',
+                                        train=True,
+                                        download=True,
+                                        transform=transform)
+
+trainloader = data.DataLoader(trainset,
+                                          batch_size=4,
+                                          shuffle=True,
+                                          num_workers=2)
+
+testset = torchvision.datasets.CIFAR10(root='./data',
+                                       train=False,
+                                       download=True,
+                                       transform=transform)
+
+testloader = torch.utils.data.DataLoader(trainset,
+                                         batch_size=4,
+                                         shuffle=True,
+                                         num_workers=2)
+#+END_SRC
+The same process applies to all data , ~DataLoader~ is the key class.
+You need to implement __len__ and __getitem__ methods, which is perfectly
+acceptable. 
+But you can ignore this and implement it yourself in Python code (see text section for an example). 
+** More datasets
+PyTorch comes with some datasets are built in such as cifar10, 100,
+MNIST and a few others. Unfortunately, this does not include ImageNet,
+which is only freely available to academics. Apparently everyone's
+suppposed to download it themselves, which strikes me as a little
+mental. With these methods we can shuffle, alter the batch size and
+launch multiple processes easily Transforms and image augmentation
+methods are additionally available, and are pretty useful. Some of
+this is actually in a package called ~torchvision~, which has (as the
+name suggests) lots of utility functions related to vision. 
+
+** Adding your own data (easy way)
+I mostly copied from [[http://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html][the transfer learning tutorial]], to be honest.
+These days they have a high-faluting tutorial, but in my days (some
+years ago) you had to walk to school uphill both ways, etc. The
+approach relies on putting your data into specific folders (but really
+this is just because I was too lazy to implement a __getitem__ method). [fn:5]
+#+BEGIN_SRC sh :results none :exports code
+ls -R new_photos
+#+END_SRC
+
+So the pattern is /data_dir/train/class/images
+You can then use the ~datasets.ImageFolder~ dataloader
+
+so we need a ~train~ and ~val~ folder. 
+We then need folders for each class (in this case, low, medium and high).
+Just to note, this would be much easier with a __getitem__ method (assuming
+you know what they are), and all of this is me hacking around not knowing
+to do that. 
+* Loading Data
+#+BEGIN_SRC python :session :results none
+data_dir = 'new_photos'
+dsets = { x: datasets.ImageFolder(
+    os.path.join(data_dir, x),
+    transform[x]) for x in ['train', 'val']}
+
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x],
+                                               batch_size=6,
+                                               shuffle=True,
+                                               num_workers=4)
+                                for x in ['train', 'val']}
+dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
+dset_classes = dsets['train'].classes
+#+END_SRC
+So, we just define our folder, our dataloader, and hack around the lack of
+implementing a __len__ method by running a dictionary comprehension. 
+
+** Dataloaders
+When I first looked at the code above, I was horrified. It seemed far too complicated for what it did. I replaced it with this
+#+BEGIN_SRC python :session :eval no
+from scipy import misc
+test = misc.imread("new_photos/train/high/6813074_....jpg")
+#+END_SRC
+However, the DataLoader solves way more problems:
+  - It implements lazy-loading which is good because each image is reasonably large
+  - it shuffles the data
+  - It varies the batch size (which can make a big difference)
+** Better dataloading
+- Torch provides a ~DataSet~ class
+  - Implement ~__len__~ and ~__getitem__~
+** DataLoading
+#+NAME: init_dataloading
+#+BEGIN_SRC python :session :results none
+from skimage import io, transform
+from torch.utils.data import Dataset, DataLoader
+class RentalsDataSetOriginal(Dataset):
+    def __init__(self, csv_file, image_path, transform):
+        self.data_file = pd.read_csv(csv_file)
+        self.image_dir = image_path
+        if transform:
+            self.transform = transform
+
+    def __len__(self):
+        return len(self.data_file)
+    def __getitem__(self, idx):
+        row = self.data_file.iloc[idx,:]
+        dclass, listing, im, split = row
+        image = io.imread(os.path.join(self.image_dir,
+                                       split,
+                                       dclass,
+                                       im)).astype('float')
+        img_torch = torch.from_numpy(image)
+        h, w, c = img_torch.size()
+        img_rs = img_torch.view([c, h, w])
+        return (img_rs, dclass)
+#+END_SRC
+** Getitem
+#+NAME: getitem
+#+BEGIN_SRC python :session :results none
+
+#+END_SRC
+
+#+BEGIN_SRC python :session :noweb yes
+<<init_dataloading>>
+<<getitem>>
+#+END_SRC
+
+#+RESULTS:
+: 1.0
+
+** Actual Neural Networks
+You must implement an __init__ method, to define the structure of the
+Net. You must implement a forward method. This should consist of all
+of non-linearites applied to each of the input layers, and then
+PyTorch handles all the backward differentiations for you (which is nice). 
+** Minimal Neural Network
+#+BEGIN_SRC python :tangle rent_pres.py
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 48, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(48, 64, 5)
+        self.conv3 = nn.Dropout2d()
+        #honestly, I just made up these numbers
+        self.fc1 = nn.Linear(64*29*29, 300)
+        self.fc2 = nn.Linear(300, 120)
+        self.fc3 = nn.Linear(120,3)
+#+END_SRC
+So the ~__init__~ method creates the structure of the net, but you
+  need to provide input and output sizes. If (when) you mess this up
+  (what do you mean you don't do those kinds of sums in your head?),
+  comment out all of the layers after the error, and use ~x.size()~ to
+  decide what to do All nets must inherit from nn.Module (or a more
+  specific version).
+** Forward Differentiation
+#+BEGIN_SRC python :tangle rent_pres.py
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 64 * 29 * 29) #-1 ignores the minibatch
+        x = F.dropout(x, training=self.training)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+#+END_SRC
+The forward operator contains the non-linearities, and the pooling
+operators. Note the training argument to dropout. The tricksy part
+with -1 indicates to ignore this dimension, as it's the minibatch (as
+explained above). Note also, the ReLU, otherwise known as the
+simplest, most complicated thing in deep learning. It performs the
+princely computation of this dire incantation
+#+BEGIN_SRC python :session :results none
+max(x, 0)
+#+END_SRC
+
+Amazing, isn't it? To be fair, ReLU's are way better than sigmoid
+functions (which may be familiar to you from such movies as logistic
+regression ), in that they don't saturate at 1. The logistic function
+never goes above 1, whereas our max if positive can (theoretically, at least) 
+go to Infinity [fn:6]. 
+
+** Training the Model
+#+BEGIN_SRC python :session :eval no
+import torch.optim as optim
+criterion = nn.CrossEntropyLoss()
+optimiser = optim.SGD(net.parameters(), lr=0.01,
+                      momentum=0.9)
+tr = dset_loaders['train']
+for epoch in range(10):
+    for i, data in enumerate(tr, 0):
+        inputs, labels = data
+        inputs, labels = Variable(inputs.cuda()),
+        Variable(labels.cuda())
+        optimiser.zero_grad()
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        _, preds = torch.max(outputs.data, 1)
+        loss.backward()
+        optimiser.step()
+#+END_SRC
+* Saving Model State
+#+BEGIN_SRC python :session :eval no
+dtime = str(datetime.datetime.now())
+    outfilename = 'train' + "_"
+    + str(epoch) +  "_"
+    + dtime + ".tar"
+    torch.save(net.state_dict(), outfilename)
+#+END_SRC
+- Useful to resume training
+- Current model state can be restored into a net of exactly the same shape
+- Not as important for my smaller models
+- These files are huuuuuggggeeee
+- So you may wish to only save whichever performs best
+* Testing the Model
+#+BEGIN_SRC python :session :eval no
+for epoch in range(5):
+    val_loss = 0.0
+    val_corrects = 0
+    for i, data in enumerate(val, 0):
+        inputs, labels = data
+        inputs, labels = Variable(inputs.cuda()),
+        Variable(labels.cuda())
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        _, preds = torch.max(outputs.data, 1)
+        val_loss += loss.data[0]
+        val_corrects += torch.sum(preds == labels.data)
+        phase = 'val'
+    val_epoch_loss = val_loss / dset_sizes['val']
+    val_epoch_acc = val_corrects / dset_sizes['val']
+    print('{} Loss: {:.4f}  Acc: {:.4f}'.format(
+            phase, val_epoch_loss, val_epoch_acc))
+#+END_SRC
+* Playing with the Net
+#+BEGIN_SRC python :session :results output
+params = list(net.parameters())
+print(len(params))
+print(params[0].size())
+
+#+END_SRC
+#+BEGIN_SRC python :session :results none :exports code
+input = Variable(torch.randn(3, 3, 48, 48))
+out = net(input)
+print(out)
+#+END_SRC
+
+* How did it do?
+#+BEGIN_EXAMPLE
+train Loss: 0.1360 Acc: 0.6742
+train Loss: 0.1355 Acc: 0.6750
+...
+train Loss: 0.1202 Acc: 0.6966
+val Loss: 0.1432  Acc: 0.6816
+...
+val Loss: 0.1440  Acc: 0.6810
+#+END_EXAMPLE
+- Training Accuracy 69% (10 epochs)
+- Test Accuracy 68%
+- This is OK, but given the data and the lack of any meaningful domain knowledge, I'm reasonably impressed.
+- I guess what we actually need to know is what the incremental value of the image data is, relative to the rest of the data.
+
+* Text Data
+- Fortunately, the rentals dataset also has some text data
+#+BEGIN_SRC python :session :results output :eval yes :exports both
+import pandas as pd
+text = pd.read_csv("rentals_sample_text_only.csv")
+first = text.iloc[0,:]
+print(list(first))
+#+END_SRC
+
+#+RESULTS:
+:
+: >>> >>> ["This location is one of the most sought after areas
+in Manhattan Building is located on an amazing quiet tree
+lined block located just steps from transportation,
+restaurants, boutique shops, grocery stores***
+For more info on this unit and/or others like it
+please contact Bryan
+449-593-7152
+/ kagglemanager@renthop.com <br /><br />
+Bond New York is a real estate broker that supports equal housing opportunity.<p><a  website_redacted "]
+
+* Characters vs Words?
+
+- Most NLP that I traditionally saw used words (and bigrams, trigrams etc) as the unit of observation
+- Many deep learning approaches instead rely on characters
+- Characters are much less sparse than words
+- We have way more characters
+- We don't understand a word as a function of its characters, so should a machine?
+
+* Characters
+
+- They are much less sparse
+- The representation is pretty cool also
+- We represent each character as a 1*N tensor for each item in the character universe
+- Each word is represented as a matrix of these characters
+
+* Preprocessing
+#+BEGIN_SRC python :session
+import unicodedata
+import string
+
+all_letters = string.ascii_letters + " .,;'"
+n_letters = len(all_letters)
+
+def unicode_to_ascii(s):
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn'
+        and c in all_letters
+    )
+
+
+#+END_SRC
+- Cultural Imperialism rocks!
+- More seriously, we reduce the dimension from 90+ to 32
+- This means we can handle more words and longer descriptions
+
+* Apply to the text data
+#+BEGIN_SRC python :session :tangle rnn_text.py
+first = text['description']
+first2 = []
+char_ascii = {}
+for word in first:
+    for char in word:
+        char = unicode_to_ascii(char.lower())
+        if char not in char_ascii:
+            char_ascii[char] = 1
+        else:
+            pass
+#+END_SRC
+- We need the character counts to create a mapping from characters to a 1-hot matrix
+- This is necessitated by the disappointing lack of R's ~model.matrix~
+- This code was also used to assess the impact of removing non-ascii chars
+* Character to Index
+#+BEGIN_SRC python :session
+import torch
+all_letters = char_ascii.keys()
+letter_idx ={}
+for letter in all_letters:
+    if letter not in letter_idx:
+        letter_idx[letter] = len(letter_idx)
+
+
+def letter_to_index(letter):
+    return letter_idx[letter]
+#+END_SRC
+
+- Create a dict with the key being the number of previous letters
+- Use this to represent the letter as a number
+
+* Letter/Words to Tensor
+#+BEGIN_SRC python :session
+def letter_to_tensor(letter):
+    tensor = torch.zeros(1, len(char_ascii))
+    tensor[0][letter_to_index(letter)] = 1
+    return tensor
+
+def line_to_tensor(line):
+    tensor = torch.zeros(len(line), 1, len(char_ascii))
+    for li, letter in enumerate(line):
+        letter = unicode_to_ascii(letter.lower())
+        tensor[li][0][letter_to_index(letter)] = 1
+    return tensor
+#+END_SRC
+- Code implementation for the character and word to tensor functions
+- Note that these are going to be really sparse vectors (1 non-sparse entry per row)
+- torch has sparse matrix support (but it's marked as experimental)
+* Bespoke Rentals Code
+#+BEGIN_SRC python :session
+all_categories = ['low', 'medium', 'high']
+def category_from_output(output):
+    top_n, top_i = output.data.topk(1)
+    category_i = top_i[0][0]
+    return all_categories[category_i], category_i
+#+END_SRC
+- We need to be able to map back from a matrix of probabilities to a class prediction
+* Different Get Data Implementation
+#+BEGIN_SRC python :session
+import pandas as pd
+textdf = pd.read_csv('rentals_text_data.csv').dropna(axis=0)
+cat_to_ix = {}
+for cat in all_categories:
+    if cat not in cat_to_ix:
+        cat_to_ix[cat] = len(cat_to_ix)
+    else:
+        pass
+
+def random_row(df):
+    rowrange = df.shape[0] - 1
+    return df.iloc[random.randint(0, rowrange)]
+#+END_SRC
+
+* Shuffling Training Examples
+#+BEGIN_SRC python :session
+import random as random
+from torch.autograd import Variable
+def random_training_example(df):
+    row = random_row(df)
+    target = row['interest_level']
+    text = row['description']
+    catlen = len(all_categories)
+    target_tensor = Variable(torch.zeros(catlen))
+    idx_cat = cat_to_ix[target]
+    target_tensor[idx_cat]  = 1
+    words_tensor = Variable(line_to_tensor(text))
+    return target, text, target_tensor, words_tensor
+
+target, text, t_tensor, w_tensor = random_training_example(textdf)
+#+END_SRC
+- We return the class, the actual text
+- And also the matrix representation of these two parts
+
+* our RNN
+#+BEGIN_SRC python :session
+import torch.nn as nn
+from torch.autograd import Variable
+
+class RNN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(RNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.i2h = nn.Linear(input_size + hidden_size,
+                             hidden_size)
+        self.i2o = nn.Linear(input_size + hidden_size,
+                             output_size)
+
+    def forward(self, input, hidden):
+        combined = torch.cat((input, hidden), 1)
+        hidden = self.i2h(combined)
+        output = self.i2o(combined)
+        return output, hidden
+
+    def init_hidden(self):
+        return Variable(torch.zeros(1, self.hidden_size))
+
+n_hidden = 128
+n_letters = len(char_ascii)
+rnn = RNN(len(char_ascii), n_hidden, 3)
+#+END_SRC
+- Pretty simple
+- Absolutely no tuning applied
+* Train on one example
+#+BEGIN_SRC python :session :results none :exports none
+import torch.nn as nn
+import torch.optim as optim
+#+END_SRC
+#+BEGIN_SRC python :session
+optimiser = optim.SGD(rnn.parameters(), lr=0.01,
+                      momentum=0.9)
+criterion = nn.CrossEntropyLoss()
+learning_rate = 0.005
+def train(target_tensor, words_tensor):
+    hidden = rnn.init_hidden()
+    rnn.zero_grad()
+    for i in range(words_tensor.size()[0]):
+        output, hidden = rnn(words_tensor[i], hidden)
+    loss = criterion(output.squeeze(),
+                     target_tensor.type(torch.LongTensor))
+    loss.backward() #magic
+    optimiser.step()
+    for p in rnn.parameters():
+        #need to figure out why this is necessary
+        p.data.add_(-learning_rate, p.grad.data)
+
+    return output, loss.data[0]
+#+END_SRC
+
+* Training in a Loop
+#+BEGIN_SRC python :session :exports none
+print_every = 500
+plot_every = 1000
+current_loss = 0
+all_losses = []
+start = time.time()
+#+END_SRC
+#+BEGIN_SRC python :session
+n_iters = 10000
+
+for iter in range(1, n_iters + 1):
+    category, line, category_tensor,
+    line_tensor, numrow = random_training_example(textdf)
+        output, loss = train(category_tensor, line_tensor)
+        current_loss += loss
+
+#+END_SRC
+
+* Inspecting the Running Model
+
+#+BEGIN_SRC python :session
+    # Print iter number, loss, name and guess
+    if iter % print_every == 0:
+        guess, guess_i = category_from_output(output)
+        correct = 'Y' if guess == category else 'N (%s)' % category
+        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, time_since(start), loss, line, guess, correct))
+
+    # Add current loss avg to list of losses
+    if iter % plot_every == 0:
+        all_losses.append(current_loss / plot_every)
+        current_loss = 0
+#+END_SRC
+* Problems
+- This loops through the data in a non-deterministic order
+- We should probably ensure that we go through the data N*epoch times
+- Additionally, we need some test data
+- Fortunately, we have all of the text data available
+- Unfortunately it's late Monday night now, and I won't sleep if I don't stop working :(
+* Future Work
+
+- Impelement Deconvolutional Nets/other visualisation tools to understand how the models work
+- Solve the actual Kaggle problem by using an RNN over my CNN
+- Add the text data, image data and structured data to an ensemble and examine overall performance
+- Learn more Python
+
+* Conclusions
+
+- PyTorch is a powerful framework for matrix computation on the GPU
+- It is deeply integrated with Python
+- It's not just a set of bindings to C/C++ code
+- It is really easy to install (by the standards of DL frameworks)
+- You can inspect each stage of the Net really easily (as it's just Python objects)
+- No weirdass errors caused by compilation!
+* Further Reading
+- My repo with [[https://github.com/richiemorrisroe/pytorch_presentation][code]] (currently non-functional because I need to upload)
+- PyTorch [[http://pytorch.org/tutorials/][tutorials]] and [[https://github.com/pytorch/examples][examples]]
+- [[pytorch.org/docs/master/torch.html][the Docs]] (these are unbelievably large)
+- [[http://www.deeplearningbook.org/][The Book]] (seriously, even if you never use deep learning there's a lot of really good material there)
+- Completely unrelated, but this is an amazing book on [[https://www.amazon.com/Fluent-Python-Concise-Effective-Programming/dp/1491946008][Python]]
+- You should definitely read it
+* Papers (horribly incomplete)
+
+- [[https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks][AlexNet]] - it's amazing how many new things this paper did
+- [[http://www.matthewzeiler.com/wp-content/uploads/2017/07/arxive2013.pdf][Deconvolutional Nets]]
+- [[https://arxiv.org/pdf/1511.06434.pdf%25C3%25AF%25C2%25BC%25E2%2580%25B0][Gneralised Adversarial Networks]]
+- [[https://arxiv.org/abs/1611.03530][Rethinking Generalisation and Deep Learning]]
+- [[https://arxiv.org/abs/1708.05866][Deep Reinforcement Learning]]
+
+* Footnotes
+
+[fn:1] except me and Yann LeCunn, apparently. 
+
+[fn:2] how do I love thee, Emacs? 
+
+[fn:3] I managed to break my entire GUI once. It got better though. 
+
+[fn:4] sadly, this doesn't work for text
+
+[fn:5] incidentally, the double-underscore methods of python are cool.
+I should write about them at some point. 
+
+[fn:6] but unfortunately not beyond
+
