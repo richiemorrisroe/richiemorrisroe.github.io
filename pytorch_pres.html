@@ -1,0 +1,1194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>PyTorch: Completely Uninformed Image Modelling</title>
+<!-- 2019-03-23 Sat 20:22 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Richie Morrisroe" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">PyTorch: Completely Uninformed Image Modelling</h1>
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Pytorch</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+<a href="http://pytorch.org/">PyTorch</a> is a framework for GPU computation in Python. It's a re-implementation of Torch, which was a project in Lua, which apparently everyone hates <sup><a id="fnr.1" name="fnr.1" class="footref" href="#fn.1">1</a></sup>. This document
+reviews PyTorch, and (perhaps more importantly) shows you how to 
+apply some pretty simple CNN's and RNN's to new data. 
+</p>
+
+<p>
+I think this is pretty important, as many tutorials use the same data, and I was
+pretty suspicious about the insane accuracies I saw on various data-sets. 
+</p>
+</div>
+<div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> How do I install it?</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+You can go <a href="https://pytorch.org/get-started/locally/">here</a> for instructions. I like running my stuff locally (and
+have a GPU, so those are the instructions I used. )
+</p>
+
+<p>
+I use conda, so that's what my instructions are based on. 
+</p>
+<div class="org-src-container">
+
+<pre class="src src-sh">conda create -n pytorch
+source activate pytorch
+conda install pytorch torchvision cudatoolkit=9.0 -c pytorch 
+conda install -c conda-forge autopep8 yapf flake8
+conda install scipy numpy sklearn pandas seaborn requests  jupyter
+conda install -c conda-forge scikit-image
+</pre>
+</div>
+<p>
+This is for CUDA 9.0 (which must be installed), Python 3 and does
+require <a href="https://conda.io/">Conda</a>. .If you use Python, you should already be using conda
+Note that the above is taking a while Like long enough that's annoying
+me as I write this, but I guess that reproducibility is a harsh
+mistress :/. Note that i add a bunch of other packages. These are for the venv,
+so that I get all of my IDE necessities <sup><a id="fnr.2" name="fnr.2" class="footref" href="#fn.2">2</a></sup>. 
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Basic Usage</h3>
+<div class="outline-text-3" id="text-1-2">
+<div class="org-src-container">
+
+<pre class="src src-python">import torch as torch
+import torchvision as tv
+</pre>
+</div>
+
+<p>
+Torch is the main package, which has loads of subpackages (autograd,
+nn and more) torchvision is a collection of uilities for image
+learning. It has transforms, and a dataset and model library, all of
+which are really useful.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-python">x = torch.Tensor(5, 3)
+y = torch.rand(5, 3)
+x + y
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> Overall API</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+Torch: Tensor (i.e. ndarray ) library, torch.autograd has features for
+ automatic differentiation, torch.nn is a neural network library,
+ torch.optim has standard optimisation methods (SGD, RMSProp, etc),
+ torch.multiprocessing has magical memory sharing and torch.utils
+ contains loading and training utility functions. For more, check out
+ their <a href="http://pytorch.org/about/">about page</a>. We'll review a bunch of this stuff throughout this
+ document.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-4" class="outline-3">
+<h3 id="sec-1-4"><span class="section-number-3">1.4</span> Sizes and Shapes</h3>
+<div class="outline-text-3" id="text-1-4">
+<div class="org-src-container">
+
+<pre class="src src-python">y = torch.randn(2, 3)
+print(y.size())
+# like np.shape for ndarray
+</pre>
+</div>
+<p>
+So the size function is essentially equivalent to np.shape,
+returning either a scalar (if vector), or a list of dimensions. 
+</p>
+
+
+
+<p>
+=torch.Size([5, 3])
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-5" class="outline-3">
+<h3 id="sec-1-5"><span class="section-number-3">1.5</span> Addition Ops</h3>
+<div class="outline-text-3" id="text-1-5">
+<div class="org-src-container">
+
+<pre class="src src-python">x + y
+z = torch.zeros([5, 3])
+torch.add(x, y)
+print(th.add(x, y))
+torch.add(z, y, out=z)
+x.add_(y)
+</pre>
+</div>
+
+<p>
+Addition can be done in multiple ways: We can assign the value to an
+out tensor as in the last example; alternatively, 
+functions prepended with an _ mutate their first argument, which
+is standard throughout the entire library. 
+</p>
+
+<p>
+I like the underscore convention, as long as it's consistent.
+Possibly a recipe for disaster if people don't know what they're doing. 
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-1-6" class="outline-3">
+<h3 id="sec-1-6"><span class="section-number-3">1.6</span> Indexing</h3>
+<div class="outline-text-3" id="text-1-6">
+<div class="org-src-container">
+
+<pre class="src src-python">print(x[:,1])
+#x[R,C]
+</pre>
+</div>
+<p>
+Pytorch uses Row, Column indices, which tend to be standardised across multiple languages now. 
+Note that 3d Tensors (i.e. for images) can have a minibatch dimension giving the number of observations in each minibatch.
+This is normally the first dimension. 
+</p>
+<ul class="org-ul">
+<li>Numpy uses Height * Width * Colour, Torch uses Colour * Height *
+Width, which means that we  require conversion to transpose the matrices (examples
+below)
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-1-7" class="outline-3">
+<h3 id="sec-1-7"><span class="section-number-3">1.7</span> Numpy Interaction</h3>
+<div class="outline-text-3" id="text-1-7">
+<div class="org-src-container">
+
+<pre class="src src-python">a = torch.ones(5)
+print(a)
+b = a.numpy()
+print(b)
+</pre>
+</div>
+
+<p>
+Conversion from and to numpy is pretty seamless (as is conversion from
+gpu to cpu). 
+</p>
+</div>
+</div>
+
+
+<div id="outline-container-sec-1-8" class="outline-3">
+<h3 id="sec-1-8"><span class="section-number-3">1.8</span> CUDA (yay!)</h3>
+<div class="outline-text-3" id="text-1-8">
+<div class="org-src-container">
+
+<pre class="src src-python">if torch.cuda.is_available():
+    x = x.cuda()
+    y = y.cuda()
+    z = x + y
+
+z_cpu = z.cpu()
+</pre>
+</div>
+<p>
+If you can get CUDA to work, the above is really easy. However,
+getting CUDA to work can be an exercise in frustration. You'll need
+all the drivers (available from the apt repos, assuming you're using
+Ubuntu). Then you need to install CUDA globally, set LD_LIBRARY_PATH
+so that the conda libraries can find your CUDA, and then pray.
+</p>
+
+<p>
+It's gotten better in the last year or two, but it's still painful.
+It is unlikely to completely brick your machine these days <sup><a id="fnr.3" name="fnr.3" class="footref" href="#fn.3">3</a></sup>
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-9" class="outline-3">
+<h3 id="sec-1-9"><span class="section-number-3">1.9</span> Autograd</h3>
+<div class="outline-text-3" id="text-1-9">
+<div class="org-src-container">
+
+<pre class="src src-python">from torch.autograd import Variable
+x = Variable(torch.ones((2, 2)))
+y = x + 2
+print(y)
+z = y * y * 3
+out = z.mean()
+print(z, out)
+out.backward(retain_graph=True)
+</pre>
+</div>
+<p>
+This is probably the coolest thing about PyTorch. It implements full
+reverse mode auto-differentiation. This is done efficiently with a
+combination of memoizing and recursive applications of the chain rule.
+These variables are inherently stateful, and thus idempotency is not
+preserved So eventually, repeated calls to backward leave you with a
+constant
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Gradients</h2>
+<div class="outline-text-2" id="text-2">
+<div class="org-src-container">
+
+<pre class="src src-python">x = torch.randn(3, requires_grad=True)
+y = x * 2
+while y.data.norm() &lt; 1000:
+    y = y * 2
+
+print(y)
+gradients = torch.FloatTensor([0.1, 1.0, 0.0001])
+y.backward(gradients)
+print(x.grad)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Loading Data</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+
+<pre class="src src-python">data_dir = 'new_photos'
+dsets = { x: datasets.ImageFolder(
+    os.path.join(data_dir, x),
+    transform[x]) for x in ['train', 'val']}
+
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x],
+                                               batch_size=6,
+                                               shuffle=True,
+                                               num_workers=4)
+                                for x in ['train', 'val']}
+dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
+dset_classes = dsets['train'].classes
+</pre>
+</div>
+<p>
+So, we just define our folder, our dataloader, and hack around the lack of
+implementing a <span class="underline"><span class="underline">len</span></span> method by running a dictionary comprehension. 
+</p>
+</div>
+
+<div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Dataloaders</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+When I first looked at the code above, I was horrified. It seemed far too complicated for what it did. I replaced it with this
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python">from scipy import misc
+test = misc.imread("new_photos/train/high/6813074_....jpg")
+</pre>
+</div>
+<p>
+However, the DataLoader solves way more problems:
+</p>
+<ul class="org-ul">
+<li>It implements lazy-loading which is good because each image is reasonably large
+</li>
+<li>it shuffles the data
+</li>
+<li>It varies the batch size (which can make a big difference)
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Better dataloading</h3>
+<div class="outline-text-3" id="text-3-2">
+<ul class="org-ul">
+<li>Torch provides a <code>DataSet</code> class
+<ul class="org-ul">
+<li>Implement <code>__len__</code> and <code>__getitem__</code>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> DataLoading</h3>
+<div class="outline-text-3" id="text-3-3">
+<div class="org-src-container">
+
+<pre class="src src-python" id="init_dataloading">from skimage import io, transform
+from torch.utils.data import Dataset, DataLoader
+class RentalsDataSetOriginal(Dataset):
+    def __init__(self, csv_file, image_path, transform):
+        self.data_file = pd.read_csv(csv_file)
+        self.image_dir = image_path
+        if transform:
+            self.transform = transform
+
+    def __len__(self):
+        return len(self.data_file)
+    def __getitem__(self, idx):
+        row = self.data_file.iloc[idx,:]
+        dclass, listing, im, split = row
+        image = io.imread(os.path.join(self.image_dir,
+                                       split,
+                                       dclass,
+                                       im)).astype('float')
+        img_torch = torch.from_numpy(image)
+        h, w, c = img_torch.size()
+        img_rs = img_torch.view([c, h, w])
+        return (img_rs, dclass)
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Getitem</h3>
+<div class="outline-text-3" id="text-3-4">
+<div class="org-src-container">
+
+<pre class="src src-python" id="getitem"></pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-python">from skimage import io, transform
+from torch.utils.data import Dataset, DataLoader
+class RentalsDataSetOriginal(Dataset):
+    def __init__(self, csv_file, image_path, transform):
+        self.data_file = pd.read_csv(csv_file)
+        self.image_dir = image_path
+        if transform:
+            self.transform = transform
+
+    def __len__(self):
+        return len(self.data_file)
+    def __getitem__(self, idx):
+        row = self.data_file.iloc[idx,:]
+        dclass, listing, im, split = row
+        image = io.imread(os.path.join(self.image_dir,
+                                       split,
+                                       dclass,
+                                       im)).astype('float')
+        img_torch = torch.from_numpy(image)
+        h, w, c = img_torch.size()
+        img_rs = img_torch.view([c, h, w])
+        return (img_rs, dclass)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Actual Neural Networks</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+You must implement an <span class="underline"><span class="underline">init</span></span> method, to define the structure of the
+Net. You must implement a forward method. This should consist of all
+of non-linearites applied to each of the input layers, and then
+PyTorch handles all the backward differentiations for you (which is nice). 
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-6" class="outline-3">
+<h3 id="sec-3-6"><span class="section-number-3">3.6</span> Minimal Neural Network</h3>
+<div class="outline-text-3" id="text-3-6">
+<div class="org-src-container">
+
+<pre class="src src-python">class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 48, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(48, 64, 5)
+        self.conv3 = nn.Dropout2d()
+        #honestly, I just made up these numbers
+        self.fc1 = nn.Linear(64*29*29, 300)
+        self.fc2 = nn.Linear(300, 120)
+        self.fc3 = nn.Linear(120,3)
+</pre>
+</div>
+<p>
+So the <code>__init__</code> method creates the structure of the net, but you
+  need to provide input and output sizes. If (when) you mess this up
+  (what do you mean you don't do those kinds of sums in your head?),
+  comment out all of the layers after the error, and use <code>x.size()</code> to
+  decide what to do All nets must inherit from nn.Module (or a more
+  specific version).
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-7" class="outline-3">
+<h3 id="sec-3-7"><span class="section-number-3">3.7</span> Forward Differentiation</h3>
+<div class="outline-text-3" id="text-3-7">
+<div class="org-src-container">
+
+<pre class="src src-python">    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 64 * 29 * 29) #-1 ignores the minibatch
+        x = F.dropout(x, training=self.training)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+</pre>
+</div>
+<p>
+The forward operator contains the non-linearities, and the pooling
+operators. Note the training argument to dropout. The tricksy part
+with -1 indicates to ignore this dimension, as it's the minibatch (as
+explained above). Note also, the ReLU, otherwise known as the
+simplest, most complicated thing in deep learning. It performs the
+princely computation of this dire incantation
+</p>
+<div class="org-src-container">
+
+<pre class="src src-python">max(x, 0)
+</pre>
+</div>
+
+<p>
+Amazing, isn't it? To be fair, ReLU's are way better than sigmoid
+functions (which may be familiar to you from such movies as logistic
+regression ), in that they don't saturate at 1. The logistic function
+never goes above 1, whereas our max if positive can (theoretically, at least) 
+go to Infinity <sup><a id="fnr.4" name="fnr.4" class="footref" href="#fn.4">4</a></sup>. 
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-3-8" class="outline-3">
+<h3 id="sec-3-8"><span class="section-number-3">3.8</span> Training the Model</h3>
+<div class="outline-text-3" id="text-3-8">
+<div class="org-src-container">
+
+<pre class="src src-python">import torch.optim as optim
+criterion = nn.CrossEntropyLoss()
+optimiser = optim.SGD(net.parameters(), lr=0.01,
+                      momentum=0.9)
+tr = dset_loaders['train']
+for epoch in range(10):
+    for i, data in enumerate(tr, 0):
+        inputs, labels = data
+        inputs, labels = Variable(inputs.cuda()),
+        Variable(labels.cuda())
+        optimiser.zero_grad()
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        _, preds = torch.max(outputs.data, 1)
+        loss.backward()
+        optimiser.step()
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Saving Model State</h2>
+<div class="outline-text-2" id="text-4">
+<div class="org-src-container">
+
+<pre class="src src-python">dtime = str(datetime.datetime.now())
+    outfilename = 'train' + "_"
+    + str(epoch) +  "_"
+    + dtime + ".tar"
+    torch.save(net.state_dict(), outfilename)
+</pre>
+</div>
+<ul class="org-ul">
+<li>Useful to resume training
+</li>
+<li>Current model state can be restored into a net of exactly the same shape
+</li>
+<li>Not as important for my smaller models
+</li>
+<li>These files are huuuuuggggeeee
+</li>
+<li>So you may wish to only save whichever performs best
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Testing the Model</h2>
+<div class="outline-text-2" id="text-5">
+<div class="org-src-container">
+
+<pre class="src src-python">for epoch in range(5):
+    val_loss = 0.0
+    val_corrects = 0
+    for i, data in enumerate(val, 0):
+        inputs, labels = data
+        inputs, labels = Variable(inputs.cuda()),
+        Variable(labels.cuda())
+        outputs = net(inputs)
+        loss = criterion(outputs, labels)
+        _, preds = torch.max(outputs.data, 1)
+        val_loss += loss.data[0]
+        val_corrects += torch.sum(preds == labels.data)
+        phase = 'val'
+    val_epoch_loss = val_loss / dset_sizes['val']
+    val_epoch_acc = val_corrects / dset_sizes['val']
+    print('{} Loss: {:.4f}  Acc: {:.4f}'.format(
+            phase, val_epoch_loss, val_epoch_acc))
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Playing with the Net</h2>
+<div class="outline-text-2" id="text-6">
+<div class="org-src-container">
+
+<pre class="src src-python">params = list(net.parameters())
+print(len(params))
+print(params[0].size())
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre class="src src-python">input = Variable(torch.randn(3, 3, 48, 48))
+out = net(input)
+print(out)
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> How did it do?</h2>
+<div class="outline-text-2" id="text-7">
+<pre class="example">
+train Loss: 0.1360 Acc: 0.6742
+train Loss: 0.1355 Acc: 0.6750
+...
+train Loss: 0.1202 Acc: 0.6966
+val Loss: 0.1432  Acc: 0.6816
+...
+val Loss: 0.1440  Acc: 0.6810
+</pre>
+<ul class="org-ul">
+<li>Training Accuracy 69% (10 epochs)
+</li>
+<li>Test Accuracy 68%
+</li>
+<li>This is OK, but given the data and the lack of any meaningful domain knowledge, I'm reasonably impressed.
+</li>
+<li>I guess what we actually need to know is what the incremental value of the image data is, relative to the rest of the data.
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Text Data</h2>
+<div class="outline-text-2" id="text-8">
+<ul class="org-ul">
+<li>Fortunately, the rentals dataset also has some text data
+</li>
+</ul>
+<div class="org-src-container">
+
+<pre class="src src-python">import pandas as pd
+text = pd.read_csv("rentals_sample_text_only.csv")
+first = text.iloc[0,:]
+print(list(first))
+</pre>
+</div>
+
+<pre class="example">
+&gt;&gt;&gt; &gt;&gt;&gt; ["This location is one of the most sought after areas
+</pre>
+<p>
+in Manhattan Building is located on an amazing quiet tree
+lined block located just steps from transportation,
+restaurants, boutique shops, grocery stores***
+For more info on this unit and/or others like it
+please contact Bryan
+449-593-7152
+/ kagglemanager@renthop.com &lt;br /&gt;&lt;br /&gt;
+Bond New York is a real estate broker that supports equal housing opportunity.&lt;p&gt;&lt;a  website_redacted "]
+</p>
+</div>
+</div>
+
+<div id="outline-container-sec-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Characters vs Words?</h2>
+<div class="outline-text-2" id="text-9">
+<ul class="org-ul">
+<li>Most NLP that I traditionally saw used words (and bigrams, trigrams etc) as the unit of observation
+</li>
+<li>Many deep learning approaches instead rely on characters
+</li>
+<li>Characters are much less sparse than words
+</li>
+<li>We have way more characters
+</li>
+<li>We don't understand a word as a function of its characters, so should a machine?
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Characters</h2>
+<div class="outline-text-2" id="text-10">
+<ul class="org-ul">
+<li>They are much less sparse
+</li>
+<li>The representation is pretty cool also
+</li>
+<li>We represent each character as a 1*N tensor for each item in the character universe
+</li>
+<li>Each word is represented as a matrix of these characters
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> Preprocessing</h2>
+<div class="outline-text-2" id="text-11">
+<div class="org-src-container">
+
+<pre class="src src-python">import unicodedata
+import string
+
+all_letters = string.ascii_letters + " .,;'"
+n_letters = len(all_letters)
+
+def unicode_to_ascii(s):
+    return ''.join(
+        c for c in unicodedata.normalize('NFD', s)
+        if unicodedata.category(c) != 'Mn'
+        and c in all_letters
+    )
+</pre>
+</div>
+<ul class="org-ul">
+<li>Cultural Imperialism rocks!
+</li>
+<li>More seriously, we reduce the dimension from 90+ to 32
+</li>
+<li>This means we can handle more words and longer descriptions
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-12" class="outline-2">
+<h2 id="sec-12"><span class="section-number-2">12</span> Apply to the text data</h2>
+<div class="outline-text-2" id="text-12">
+<div class="org-src-container">
+
+<pre class="src src-python">first = text['description']
+first2 = []
+char_ascii = {}
+for word in first:
+    for char in word:
+        char = unicode_to_ascii(char.lower())
+        if char not in char_ascii:
+            char_ascii[char] = 1
+        else:
+            pass
+</pre>
+</div>
+<ul class="org-ul">
+<li>We need the character counts to create a mapping from characters to a 1-hot matrix
+</li>
+<li>This is necessitated by the disappointing lack of R's <code>model.matrix</code>
+</li>
+<li>This code was also used to assess the impact of removing non-ascii chars
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-13" class="outline-2">
+<h2 id="sec-13"><span class="section-number-2">13</span> Character to Index</h2>
+<div class="outline-text-2" id="text-13">
+<div class="org-src-container">
+
+<pre class="src src-python">import torch
+all_letters = char_ascii.keys()
+letter_idx ={}
+for letter in all_letters:
+    if letter not in letter_idx:
+        letter_idx[letter] = len(letter_idx)
+
+
+def letter_to_index(letter):
+    return letter_idx[letter]
+</pre>
+</div>
+
+<ul class="org-ul">
+<li>Create a dict with the key being the number of previous letters
+</li>
+<li>Use this to represent the letter as a number
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-14" class="outline-2">
+<h2 id="sec-14"><span class="section-number-2">14</span> Letter/Words to Tensor</h2>
+<div class="outline-text-2" id="text-14">
+<div class="org-src-container">
+
+<pre class="src src-python">def letter_to_tensor(letter):
+    tensor = torch.zeros(1, len(char_ascii))
+    tensor[0][letter_to_index(letter)] = 1
+    return tensor
+
+def line_to_tensor(line):
+    tensor = torch.zeros(len(line), 1, len(char_ascii))
+    for li, letter in enumerate(line):
+        letter = unicode_to_ascii(letter.lower())
+        tensor[li][0][letter_to_index(letter)] = 1
+    return tensor
+</pre>
+</div>
+<ul class="org-ul">
+<li>Code implementation for the character and word to tensor functions
+</li>
+<li>Note that these are going to be really sparse vectors (1 non-sparse entry per row)
+</li>
+<li>torch has sparse matrix support (but it's marked as experimental)
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-15" class="outline-2">
+<h2 id="sec-15"><span class="section-number-2">15</span> Bespoke Rentals Code</h2>
+<div class="outline-text-2" id="text-15">
+<div class="org-src-container">
+
+<pre class="src src-python">all_categories = ['low', 'medium', 'high']
+def category_from_output(output):
+    top_n, top_i = output.data.topk(1)
+    category_i = top_i[0][0]
+    return all_categories[category_i], category_i
+</pre>
+</div>
+<ul class="org-ul">
+<li>We need to be able to map back from a matrix of probabilities to a class prediction
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-16" class="outline-2">
+<h2 id="sec-16"><span class="section-number-2">16</span> Different Get Data Implementation</h2>
+<div class="outline-text-2" id="text-16">
+<div class="org-src-container">
+
+<pre class="src src-python">import pandas as pd
+textdf = pd.read_csv('rentals_text_data.csv').dropna(axis=0)
+cat_to_ix = {}
+for cat in all_categories:
+    if cat not in cat_to_ix:
+        cat_to_ix[cat] = len(cat_to_ix)
+    else:
+        pass
+
+def random_row(df):
+    rowrange = df.shape[0] - 1
+    return df.iloc[random.randint(0, rowrange)]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-17" class="outline-2">
+<h2 id="sec-17"><span class="section-number-2">17</span> Shuffling Training Examples</h2>
+<div class="outline-text-2" id="text-17">
+<div class="org-src-container">
+
+<pre class="src src-python">import random as random
+from torch.autograd import Variable
+def random_training_example(df):
+    row = random_row(df)
+    target = row['interest_level']
+    text = row['description']
+    catlen = len(all_categories)
+    target_tensor = Variable(torch.zeros(catlen))
+    idx_cat = cat_to_ix[target]
+    target_tensor[idx_cat]  = 1
+    words_tensor = Variable(line_to_tensor(text))
+    return target, text, target_tensor, words_tensor
+
+target, text, t_tensor, w_tensor = random_training_example(textdf)
+</pre>
+</div>
+<ul class="org-ul">
+<li>We return the class, the actual text
+</li>
+<li>And also the matrix representation of these two parts
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-18" class="outline-2">
+<h2 id="sec-18"><span class="section-number-2">18</span> our RNN</h2>
+<div class="outline-text-2" id="text-18">
+<div class="org-src-container">
+
+<pre class="src src-python">import torch.nn as nn
+from torch.autograd import Variable
+
+class RNN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(RNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.i2h = nn.Linear(input_size + hidden_size,
+                             hidden_size)
+        self.i2o = nn.Linear(input_size + hidden_size,
+                             output_size)
+
+    def forward(self, input, hidden):
+        combined = torch.cat((input, hidden), 1)
+        hidden = self.i2h(combined)
+        output = self.i2o(combined)
+        return output, hidden
+
+    def init_hidden(self):
+        return Variable(torch.zeros(1, self.hidden_size))
+
+n_hidden = 128
+n_letters = len(char_ascii)
+rnn = RNN(len(char_ascii), n_hidden, 3)
+</pre>
+</div>
+<ul class="org-ul">
+<li>Pretty simple
+</li>
+<li>Absolutely no tuning applied
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-19" class="outline-2">
+<h2 id="sec-19"><span class="section-number-2">19</span> Train on one example</h2>
+<div class="outline-text-2" id="text-19">
+<div class="org-src-container">
+
+<pre class="src src-python">optimiser = optim.SGD(rnn.parameters(), lr=0.01,
+                      momentum=0.9)
+criterion = nn.CrossEntropyLoss()
+learning_rate = 0.005
+def train(target_tensor, words_tensor):
+    hidden = rnn.init_hidden()
+    rnn.zero_grad()
+    for i in range(words_tensor.size()[0]):
+        output, hidden = rnn(words_tensor[i], hidden)
+    loss = criterion(output.squeeze(),
+                     target_tensor.type(torch.LongTensor))
+    loss.backward() #magic
+    optimiser.step()
+    for p in rnn.parameters():
+        #need to figure out why this is necessary
+        p.data.add_(-learning_rate, p.grad.data)
+
+    return output, loss.data[0]
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-20" class="outline-2">
+<h2 id="sec-20"><span class="section-number-2">20</span> Training in a Loop</h2>
+<div class="outline-text-2" id="text-20">
+<div class="org-src-container">
+
+<pre class="src src-python">n_iters = 10000
+
+for iter in range(1, n_iters + 1):
+    category, line, category_tensor,
+    line_tensor, numrow = random_training_example(textdf)
+        output, loss = train(category_tensor, line_tensor)
+        current_loss += loss
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-21" class="outline-2">
+<h2 id="sec-21"><span class="section-number-2">21</span> Inspecting the Running Model</h2>
+<div class="outline-text-2" id="text-21">
+<div class="org-src-container">
+
+<pre class="src src-python">    # Print iter number, loss, name and guess
+    if iter % print_every == 0:
+        guess, guess_i = category_from_output(output)
+        correct = 'Y' if guess == category else 'N (%s)' % category
+        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, time_since(start), loss, line, guess, correct))
+
+    # Add current loss avg to list of losses
+    if iter % plot_every == 0:
+        all_losses.append(current_loss / plot_every)
+        current_loss = 0
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-22" class="outline-2">
+<h2 id="sec-22"><span class="section-number-2">22</span> Problems</h2>
+<div class="outline-text-2" id="text-22">
+<ul class="org-ul">
+<li>This loops through the data in a non-deterministic order
+</li>
+<li>We should probably ensure that we go through the data N*epoch times
+</li>
+<li>Additionally, we need some test data
+</li>
+<li>Fortunately, we have all of the text data available
+</li>
+<li>Unfortunately it's late Monday night now, and I won't sleep if I don't stop working :(
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-23" class="outline-2">
+<h2 id="sec-23"><span class="section-number-2">23</span> Future Work</h2>
+<div class="outline-text-2" id="text-23">
+<ul class="org-ul">
+<li>Impelement Deconvolutional Nets/other visualisation tools to understand how the models work
+</li>
+<li>Solve the actual Kaggle problem by using an RNN over my CNN
+</li>
+<li>Add the text data, image data and structured data to an ensemble and examine overall performance
+</li>
+<li>Learn more Python
+</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-sec-24" class="outline-2">
+<h2 id="sec-24"><span class="section-number-2">24</span> Conclusions</h2>
+<div class="outline-text-2" id="text-24">
+<ul class="org-ul">
+<li>PyTorch is a powerful framework for matrix computation on the GPU
+</li>
+<li>It is deeply integrated with Python
+</li>
+<li>It's not just a set of bindings to C/C++ code
+</li>
+<li>It is really easy to install (by the standards of DL frameworks)
+</li>
+<li>You can inspect each stage of the Net really easily (as it's just Python objects)
+</li>
+<li>No weirdass errors caused by compilation!
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-25" class="outline-2">
+<h2 id="sec-25"><span class="section-number-2">25</span> Further Reading</h2>
+<div class="outline-text-2" id="text-25">
+<ul class="org-ul">
+<li>My repo with <a href="https://github.com/richiemorrisroe/pytorch_presentation">code</a> (currently non-functional because I need to upload)
+</li>
+<li>PyTorch <a href="http://pytorch.org/tutorials/">tutorials</a> and <a href="https://github.com/pytorch/examples">examples</a>
+</li>
+<li><i>the Docs</i> (these are unbelievably large)
+</li>
+<li><a href="http://www.deeplearningbook.org/">The Book</a> (seriously, even if you never use deep learning there's a lot of really good material there)
+</li>
+<li>Completely unrelated, but this is an amazing book on <a href="https://www.amazon.com/Fluent-Python-Concise-Effective-Programming/dp/1491946008">Python</a>
+</li>
+<li>You should definitely read it
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-26" class="outline-2">
+<h2 id="sec-26"><span class="section-number-2">26</span> Papers (horribly incomplete)</h2>
+<div class="outline-text-2" id="text-26">
+<ul class="org-ul">
+<li><a href="https://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks">AlexNet</a> - it's amazing how many new things this paper did
+</li>
+<li><a href="http://www.matthewzeiler.com/wp-content/uploads/2017/07/arxive2013.pdf">Deconvolutional Nets</a>
+</li>
+<li><a href="https://arxiv.org/pdf/1511.06434.pdf%25C3%25AF%25C2%25BC%25E2%2580%25B0">Gneralised Adversarial Networks</a>
+</li>
+<li><a href="https://arxiv.org/abs/1611.03530">Rethinking Generalisation and Deep Learning</a>
+</li>
+<li><a href="https://arxiv.org/abs/1708.05866">Deep Reinforcement Learning</a>
+</li>
+</ul>
+</div>
+</div>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" name="fn.1" class="footnum" href="#fnr.1">1</a></sup> <p class="footpara">
+except me and Yann LeCunn, apparently. 
+</p></div>
+
+<div class="footdef"><sup><a id="fn.2" name="fn.2" class="footnum" href="#fnr.2">2</a></sup> <p class="footpara">
+how do I love thee, Emacs? 
+</p></div>
+
+<div class="footdef"><sup><a id="fn.3" name="fn.3" class="footnum" href="#fnr.3">3</a></sup> <p class="footpara">
+I managed to break my entire GUI once. It got better though. 
+</p></div>
+
+<div class="footdef"><sup><a id="fn.4" name="fn.4" class="footnum" href="#fnr.4">4</a></sup> <p class="footpara">
+but unfortunately not beyond
+</p></div>
+
+
+</div>
+</div></div>
+<div id="postamble" class="status">
+<p class="author">Author: Richie Morrisroe</p>
+<p class="date">Created: 2019-03-23 Sat 20:22</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.2.2 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
