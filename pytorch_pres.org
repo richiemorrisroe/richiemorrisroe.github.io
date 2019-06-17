@@ -1,6 +1,9 @@
+
+#+SETUPFILE: ~/Dropbox/org-minimal-html-theme/org-minimal-theme.setup
 #+PROPERTY: header-args:python :exports code :eval no-export
 #+TITLE: PyTorch: Completely Uninformed Image Modelling
 #+AUTHOR: Richie Morrisroe
+
 #+OPTIONS: toc:nil
 #+OPTIONS: ^:nil
 * Pytorch
@@ -25,11 +28,17 @@ conda install scipy numpy sklearn pandas seaborn requests  jupyter
 conda install -c conda-forge scikit-image
 #+END_SRC
 This is for CUDA 9.0 (which must be installed), Python 3 and does
-require [[https://conda.io/][Conda]]. .If you use Python, you should already be using conda
-Note that the above is taking a while Like long enough that's annoying
-me as I write this, but I guess that reproducibility is a harsh
-mistress :/. Note that i add a bunch of other packages. These are for the venv,
-so that I get all of my IDE necessities [fn:2]. 
+require [[https://conda.io/][Conda]]. 
+
+If you use Python, you should already be using conda, as its a pretty OK package manager.
+It's also nice that it can handle compiled dependencies (i.e. C++ and whatnot). It is
+more general than Python (you can get R and various linux tools through it, which is handy
+if you don't have root or are working on an out of date system). 
+
+Note that the above is taking a while.... Like long enough that's
+annoying me as I write this, but I guess that reproducibility is a
+harsh mistress :/. Note that i add a bunch of other packages. These
+are for the virtualenv, so that I get all of my IDE necessities [fn:2].
 ** Basic Usage
 
 #+BEGIN_SRC python :session
@@ -40,24 +49,22 @@ import torchvision as tv
 #+RESULTS:
 
 Torch is the main package, which has loads of subpackages (autograd,
-nn and more) torchvision is a collection of uilities for image
+nn and more). Torchvision is a collection of uilities for image
 learning. It has transforms, and a dataset and model library, all of
 which are really useful.
 
-#+BEGIN_SRC python :session 
+#+BEGIN_SRC python :session :results pp
 x = torch.Tensor(5, 3)
 y = torch.rand(5, 3)
 x + y
 #+END_SRC
 
 #+RESULTS:
-: 
-:  6.4246e+08  2.6495e-01  5.4472e-01
-:  3.6169e-01  8.8263e-01  8.6725e-01
-:  9.4068e-02         nan  2.2952e+08
-:  5.5131e-02  4.3398e-01  8.6512e-01
-:  8.1313e-01  3.8932e-01  6.7911e-01
-: [torch.FloatTensor of size 5x3]
+: tensor([[1.3666e+35, 3.9689e-01, 9.7655e-01],
+:         [1.8281e-01,        nan, 6.0474e+10],
+:         [3.8194e-01, 6.4076e+07, 6.9229e-01],
+:         [7.3909e+22, 5.2517e-01, 1.1625e+33],
+:         [1.8350e+00, 1.1632e+33, 9.4519e-01]])
 
 ** Overall API
 Torch: Tensor (i.e. ndarray ) library, torch.autograd has features for
@@ -69,11 +76,15 @@ Torch: Tensor (i.e. ndarray ) library, torch.autograd has features for
  document.
 ** Sizes and Shapes
 
-#+BEGIN_SRC python :session :results output
+#+BEGIN_SRC python :session :results pp
 y = torch.randn(2, 3)
 print(y.size())
 # like np.shape for ndarray
 #+END_SRC
+
+#+RESULTS:
+: 'org_babel_python_eoe'
+
 So the size function is essentially equivalent to np.shape,
 returning either a scalar (if vector), or a list of dimensions. 
 
@@ -94,13 +105,6 @@ x.add_(y)
 #+END_SRC
 
 #+RESULTS:
-: 
-:  6.4246e+08  7.9484e-01  1.6342e+00
-:  1.0851e+00  2.6479e+00  2.6017e+00
-:  2.8220e-01         nan  2.2952e+08
-:  1.6539e-01  1.3020e+00  2.5954e+00
-:  2.4394e+00  1.1680e+00  2.0373e+00
-: [torch.FloatTensor of size 5x3]
 
 Addition can be done in multiple ways: We can assign the value to an
 out tensor as in the last example; alternatively, 
@@ -119,9 +123,10 @@ print(x[:,1])
 Pytorch uses Row, Column indices, which tend to be standardised across multiple languages now. 
 Note that 3d Tensors (i.e. for images) can have a minibatch dimension giving the number of observations in each minibatch.
 This is normally the first dimension. 
-- Numpy uses Height * Width * Colour, Torch uses Colour * Height *
-  Width, which means that we  require conversion to transpose the matrices (examples
-  below)
+- Numpy uses Height * Width * Colour, 
+- Torch uses Colour * Height * Width, 
+- This means that we require conversion to transpose the matrices
+  (examples below)
 ** Numpy Interaction
 
 #+BEGIN_SRC python :session :results none
@@ -158,24 +163,51 @@ It is unlikely to completely brick your machine these days [fn:3]
 # - CUDA interop is easy
 # - Converting back is a simple ~cpu~ call
 ** Autograd
-#+BEGIN_SRC python :session :results none
+
+Once upon a time, Pytorch had a class called Variable,
+which represented a variable with a history (for the differentiation). 
+
+Creating one of those used to look like this, below. 
+#+BEGIN_SRC python :session :results none :exports code
 from torch.autograd import Variable
-x = Variable(torch.ones((2, 2)))
+x = torch.ones((2, 2)))
 y = x + 2
 print(y)
 z = y * y * 3
 out = z.mean()
 print(z, out)
-out.backward(retain_graph=True)
+out.backward()
 #+END_SRC
+
+This doesn't work the same way anymore (since 0.4).
+
+Now, the API for tensors and variables has been unified,
+which means that the above is done like so. 
+
+
+#+BEGIN_SRC python :session :results pp :exports code
+from torch.autograd import Variable
+x = torch.ones((2, 2)), requires_grad=True)
+y = x + 2
+print(y)
+z = y * y * 3
+out = z.mean()
+print(z, out)
+#+END_SRC
+
+#+RESULTS:
+: 'org_babel_python_eoe'
+
+
 This is probably the coolest thing about PyTorch. It implements full
 reverse mode auto-differentiation. This is done efficiently with a
 combination of memoizing and recursive applications of the chain rule.
 These variables are inherently stateful, and thus idempotency is not
-preserved So eventually, repeated calls to backward leave you with a
-constant
+preserved. So eventually, repeated calls to backward leave you with a
+constant. 
+
 * Gradients
-#+BEGIN_SRC python :session :results none
+#+BEGIN_SRC python :session :results pp
 x = torch.randn(3, requires_grad=True)
 y = x * 2
 while y.data.norm() < 1000:
@@ -184,8 +216,474 @@ while y.data.norm() < 1000:
 print(y)
 gradients = torch.FloatTensor([0.1, 1.0, 0.0001])
 y.backward(gradients)
-print(x.grad)
+print(x, x.grad)
 #+END_SRC
+
+#+RESULTS:
+: tensor([ 0.9863, -0.5422,  1.0523], requires_grad=True)
+
+The gradients are a slot in the Tensor object.
+
+
+#+BEGIN_SRC python :session :results pp
+dir(x)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+['__abs__',
+ '__add__',
+ '__and__',
+ '__array__',
+ '__array_priority__',
+ '__array_wrap__',
+ '__bool__',
+ '__class__',
+ '__deepcopy__',
+ '__delattr__',
+ '__delitem__',
+ '__dict__',
+ '__dir__',
+ '__div__',
+ '__doc__',
+ '__eq__',
+ '__float__',
+ '__floordiv__',
+ '__format__',
+ '__ge__',
+ '__getattribute__',
+ '__getitem__',
+ '__gt__',
+ '__hash__',
+ '__iadd__',
+ '__iand__',
+ '__idiv__',
+ '__ilshift__',
+ '__imul__',
+ '__index__',
+ '__init__',
+ '__init_subclass__',
+ '__int__',
+ '__invert__',
+ '__ior__',
+ '__ipow__',
+ '__irshift__',
+ '__isub__',
+ '__iter__',
+ '__itruediv__',
+ '__ixor__',
+ '__le__',
+ '__len__',
+ '__long__',
+ '__lshift__',
+ '__lt__',
+ '__matmul__',
+ '__mod__',
+ '__module__',
+ '__mul__',
+ '__ne__',
+ '__neg__',
+ '__new__',
+ '__nonzero__',
+ '__or__',
+ '__pow__',
+ '__radd__',
+ '__rdiv__',
+ '__reduce__',
+ '__reduce_ex__',
+ '__repr__',
+ '__reversed__',
+ '__rfloordiv__',
+ '__rmul__',
+ '__rpow__',
+ '__rshift__',
+ '__rsub__',
+ '__rtruediv__',
+ '__setattr__',
+ '__setitem__',
+ '__setstate__',
+ '__sizeof__',
+ '__str__',
+ '__sub__',
+ '__subclasshook__',
+ '__truediv__',
+ '__weakref__',
+ '__xor__',
+ '_backward_hooks',
+ '_base',
+ '_cdata',
+ '_coalesced_',
+ '_dimI',
+ '_dimV',
+ '_grad',
+ '_grad_fn',
+ '_indices',
+ '_make_subclass',
+ '_nnz',
+ '_values',
+ '_version',
+ 'abs',
+ 'abs_',
+ 'acos',
+ 'acos_',
+ 'add',
+ 'add_',
+ 'addbmm',
+ 'addbmm_',
+ 'addcdiv',
+ 'addcdiv_',
+ 'addcmul',
+ 'addcmul_',
+ 'addmm',
+ 'addmm_',
+ 'addmv',
+ 'addmv_',
+ 'addr',
+ 'addr_',
+ 'all',
+ 'allclose',
+ 'any',
+ 'apply_',
+ 'argmax',
+ 'argmin',
+ 'argsort',
+ 'as_strided',
+ 'as_strided_',
+ 'asin',
+ 'asin_',
+ 'atan',
+ 'atan2',
+ 'atan2_',
+ 'atan_',
+ 'backward',
+ 'baddbmm',
+ 'baddbmm_',
+ 'bernoulli',
+ 'bernoulli_',
+ 'bincount',
+ 'bmm',
+ 'btrifact',
+ 'btrifact_with_info',
+ 'btrisolve',
+ 'byte',
+ 'cauchy_',
+ 'ceil',
+ 'ceil_',
+ 'char',
+ 'cholesky',
+ 'chunk',
+ 'clamp',
+ 'clamp_',
+ 'clamp_max',
+ 'clamp_max_',
+ 'clamp_min',
+ 'clamp_min_',
+ 'clone',
+ 'coalesce',
+ 'contiguous',
+ 'copy_',
+ 'cos',
+ 'cos_',
+ 'cosh',
+ 'cosh_',
+ 'cpu',
+ 'cross',
+ 'cuda',
+ 'cumprod',
+ 'cumsum',
+ 'data',
+ 'data_ptr',
+ 'dense_dim',
+ 'det',
+ 'detach',
+ 'detach_',
+ 'device',
+ 'diag',
+ 'diag_embed',
+ 'diagflat',
+ 'diagonal',
+ 'digamma',
+ 'digamma_',
+ 'dim',
+ 'dist',
+ 'div',
+ 'div_',
+ 'dot',
+ 'double',
+ 'dtype',
+ 'eig',
+ 'element_size',
+ 'eq',
+ 'eq_',
+ 'equal',
+ 'erf',
+ 'erf_',
+ 'erfc',
+ 'erfc_',
+ 'erfinv',
+ 'erfinv_',
+ 'exp',
+ 'exp_',
+ 'expand',
+ 'expand_as',
+ 'expm1',
+ 'expm1_',
+ 'exponential_',
+ 'fft',
+ 'fill_',
+ 'flatten',
+ 'flip',
+ 'float',
+ 'floor',
+ 'floor_',
+ 'fmod',
+ 'fmod_',
+ 'frac',
+ 'frac_',
+ 'gather',
+ 'ge',
+ 'ge_',
+ 'gels',
+ 'geometric_',
+ 'geqrf',
+ 'ger',
+ 'gesv',
+ 'get_device',
+ 'grad',
+ 'grad_fn',
+ 'gt',
+ 'gt_',
+ 'half',
+ 'hardshrink',
+ 'histc',
+ 'ifft',
+ 'index_add',
+ 'index_add_',
+ 'index_copy',
+ 'index_copy_',
+ 'index_fill',
+ 'index_fill_',
+ 'index_put',
+ 'index_put_',
+ 'index_select',
+ 'indices',
+ 'int',
+ 'inverse',
+ 'irfft',
+ 'is_coalesced',
+ 'is_complex',
+ 'is_contiguous',
+ 'is_cuda',
+ 'is_distributed',
+ 'is_floating_point',
+ 'is_leaf',
+ 'is_nonzero',
+ 'is_pinned',
+ 'is_same_size',
+ 'is_set_to',
+ 'is_shared',
+ 'is_signed',
+ 'is_sparse',
+ 'isclose',
+ 'item',
+ 'kthvalue',
+ 'layout',
+ 'le',
+ 'le_',
+ 'lerp',
+ 'lerp_',
+ 'lgamma',
+ 'lgamma_',
+ 'log',
+ 'log10',
+ 'log10_',
+ 'log1p',
+ 'log1p_',
+ 'log2',
+ 'log2_',
+ 'log_',
+ 'log_normal_',
+ 'log_softmax',
+ 'logdet',
+ 'logsumexp',
+ 'long',
+ 'lt',
+ 'lt_',
+ 'map2_',
+ 'map_',
+ 'masked_fill',
+ 'masked_fill_',
+ 'masked_scatter',
+ 'masked_scatter_',
+ 'masked_select',
+ 'matmul',
+ 'matrix_power',
+ 'max',
+ 'mean',
+ 'median',
+ 'min',
+ 'mm',
+ 'mode',
+ 'mul',
+ 'mul_',
+ 'multinomial',
+ 'mv',
+ 'mvlgamma',
+ 'mvlgamma_',
+ 'name',
+ 'narrow',
+ 'narrow_copy',
+ 'ndimension',
+ 'ne',
+ 'ne_',
+ 'neg',
+ 'neg_',
+ 'nelement',
+ 'new',
+ 'new_empty',
+ 'new_full',
+ 'new_ones',
+ 'new_tensor',
+ 'new_zeros',
+ 'nonzero',
+ 'norm',
+ 'normal_',
+ 'numel',
+ 'numpy',
+ 'orgqr',
+ 'ormqr',
+ 'output_nr',
+ 'permute',
+ 'pin_memory',
+ 'pinverse',
+ 'polygamma',
+ 'polygamma_',
+ 'potrf',
+ 'potri',
+ 'potrs',
+ 'pow',
+ 'pow_',
+ 'prelu',
+ 'prod',
+ 'pstrf',
+ 'put_',
+ 'qr',
+ 'random_',
+ 'reciprocal',
+ 'reciprocal_',
+ 'record_stream',
+ 'register_hook',
+ 'reinforce',
+ 'relu',
+ 'relu_',
+ 'remainder',
+ 'remainder_',
+ 'renorm',
+ 'renorm_',
+ 'repeat',
+ 'requires_grad',
+ 'requires_grad_',
+ 'reshape',
+ 'reshape_as',
+ 'resize',
+ 'resize_',
+ 'resize_as',
+ 'resize_as_',
+ 'retain_grad',
+ 'rfft',
+ 'roll',
+ 'rot90',
+ 'round',
+ 'round_',
+ 'rsqrt',
+ 'rsqrt_',
+ 'scatter',
+ 'scatter_',
+ 'scatter_add',
+ 'scatter_add_',
+ 'select',
+ 'set_',
+ 'shape',
+ 'share_memory_',
+ 'short',
+ 'sigmoid',
+ 'sigmoid_',
+ 'sign',
+ 'sign_',
+ 'sin',
+ 'sin_',
+ 'sinh',
+ 'sinh_',
+ 'size',
+ 'slogdet',
+ 'smm',
+ 'softmax',
+ 'sort',
+ 'sparse_dim',
+ 'sparse_mask',
+ 'sparse_resize_',
+ 'sparse_resize_and_clear_',
+ 'split',
+ 'split_with_sizes',
+ 'sqrt',
+ 'sqrt_',
+ 'squeeze',
+ 'squeeze_',
+ 'sspaddmm',
+ 'std',
+ 'stft',
+ 'storage',
+ 'storage_offset',
+ 'storage_type',
+ 'stride',
+ 'sub',
+ 'sub_',
+ 'sum',
+ 'svd',
+ 'symeig',
+ 't',
+ 't_',
+ 'take',
+ 'tan',
+ 'tan_',
+ 'tanh',
+ 'tanh_',
+ 'to',
+ 'to_dense',
+ 'to_sparse',
+ 'tolist',
+ 'topk',
+ 'trace',
+ 'transpose',
+ 'transpose_',
+ 'tril',
+ 'tril_',
+ 'triu',
+ 'triu_',
+ 'trtrs',
+ 'trunc',
+ 'trunc_',
+ 'type',
+ 'type_as',
+ 'unbind',
+ 'unfold',
+ 'uniform_',
+ 'unique',
+ 'unsqueeze',
+ 'unsqueeze_',
+ 'values',
+ 'var',
+ 'view',
+ 'view_as',
+ 'where',
+ 'zero_']
+#+end_example
+
+Wow, they implement essentially all of the standard dunder methods,
+and add on a whole host more for free. Clearly, FAIR's programmers
+and researchers are not standing still while they're not plotting
+to take over the world ;). 
+
 * Loss Functions :noexport:
 
 #+BEGIN_SRC python :session :results none :exports code
